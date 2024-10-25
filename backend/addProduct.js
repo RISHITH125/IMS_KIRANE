@@ -1,6 +1,6 @@
 // Function to prompt user input
 const { productCreate, categoryAdd, supplierAdd } = require('./product.js')
-
+const readline = require('readline')
 
 module.exports = {
     addProduct: async function(pool) {
@@ -23,11 +23,6 @@ module.exports = {
             const quantity = await prompt('Enter quantity: ');
             const reorderLevel = await prompt('Enter reorder level: ');
 
-            // Call the productCreate function
-            await productCreate(pool, productID, productName, price, expiryDate, supplierId, categoryId, quantity, reorderLevel);
-
-            console.log("Product added successfully!");
-
             // Prompt for supplier details
             const supplierID = await prompt('Enter supplier ID: ');
             const address = await prompt('Enter address: ');
@@ -46,21 +41,22 @@ module.exports = {
                 email.push(await prompt(`Enter email ${i + 1}: `));
             }
 
-            // Call the supplierAdd function
-            await supplierAdd(pool, supplierID, address, supplierName, phno, email);
-
-            console.log("Supplier details added successfully!");
-
             // Prompt for category details
             const categoryID = await prompt('Enter category ID: ');
             const description = await prompt('Enter description: ');
             const categoryName = await prompt('Enter category name: ');
-
+            
             // Call the categoryAdd function
             await categoryAdd(pool, categoryID, description, categoryName);
-
             console.log("Category added successfully!");
 
+            // Call the supplierAdd function
+            await supplierAdd(pool, supplierID, address, supplierName, phno, email);
+            console.log("Supplier details added successfully!");
+
+            // Call the productCreate function
+            await productCreate(pool, productID, productName, price, expiryDate, supplierId, categoryId, quantity, reorderLevel);
+            console.log("Product added successfully!");
         } catch (err) {
             console.error('Error adding product, supplier, or category:', err.message);
         } finally {

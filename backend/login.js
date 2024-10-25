@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const mysql = require('mysql2');
 
 async function hashPassword(plainPassword) {
     const saltRounds = 10; // Adjust salt rounds for security
@@ -19,10 +20,18 @@ module.exports = {
         }
     },
 
-    createStoreDatabase: async function(pool, storename) {
+    createStoreDatabase: async function(genpool, storename) {
         try {
             // Create the database dynamically
-            await pool.query(`CREATE DATABASE IF NOT EXISTS \`${storename}\`;`);
+            await genpool.query(`CREATE DATABASE IF NOT EXISTS \`${storename}\`;`);
+
+            const pool = mysql.createPool({
+                host: process.env.DB_HOST,
+                user: process.env.DB_USER,
+                password: process.env.DB_PASSWORD,
+                database: storename, // Now use the new database
+            }).promise();
+    
 
             // Use the newly created database
             await pool.query(`USE \`${storename}\`;`);
@@ -101,11 +110,13 @@ module.exports = {
                     reorderLevel INT,            -- Specify data type for reorderLevel
                     expiry DATE,
                     dateadded DATE,
-                    FOREIGN KEY (supplierID) REFERENCES suppliers(supplierID),   -- Assuming you have a suppliers table
-                    FOREIGN KEY (categoryID) REFERENCES categories(categoryID)    -- Assuming you have a categories table
+                    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),   -- Assuming you have a suppliers table
+                    FOREIGN KEY (categoryID) REFERENCES category(categoryID)    -- Assuming you have a categories table
                 );
             `);
             console.log(`Database and user, products, category, supplier table for store '${storename}' created successfully.`);
+
+            return pool;
         } catch (err) {
             console.error('Error creating store database:', err);
         }

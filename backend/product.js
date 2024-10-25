@@ -29,9 +29,7 @@ module.exports = {
         try {
             const dateAdded = new Date().toISOString().split('T')[0];
             
-            await pool.query(`
-                INSERT INTO product(productID, productName, price, supplierId, categoryId, quantity, reorderLevel, expiryDate, dateAdded)
-                VALUES (?, ?, ?, ?, ?)`, [productID, productName, price, supplierId, categoryId, quantity, reorderLevel, expiryDate, dateAdded]);        
+            await pool.query(`INSERT INTO product(productID, productName, price, supplierId, categoryId, quantity, reorderLevel, expiry, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [productID, productName, price, supplierId, categoryId, quantity, reorderLevel, expiryDate, dateAdded]);        
                 
         } catch (err) {
             console.error("Couldn't insert details of the produt...", err);

@@ -1,7 +1,8 @@
+const readline = require('readline')
 const { fetchData, createStoreDatabase, loginCreate, del_user } = require('./login.js');
 
 module.exports = {
-    createUser: async function(pool) {
+    createUser: async function(genpool) {
         // Create a readline interface for user input
         const rl = readline.createInterface({
             input: process.stdin,
@@ -23,7 +24,7 @@ module.exports = {
             const emailArray = email.split(',').map(e => e.trim());
             const phnoArray = phno.split(',').map(p => p.trim());
     
-            await createStoreDatabase(pool, storename);
+            const pool = await createStoreDatabase(genpool, storename);
             await loginCreate(pool, fullname, password, storename, username, emailArray, phnoArray);
             await fetchData(pool);
         } catch (err) {
