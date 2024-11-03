@@ -32,7 +32,7 @@ module.exports = {
             await pool.query(`INSERT INTO product(productID, productName, price, supplierId, categoryId, quantity, reorderLevel, expiry, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [productID, productName, price, supplierId, categoryId, quantity, reorderLevel, expiryDate, dateAdded]);        
                 
         } catch (err) {
-            console.error("Couldn't insert details of the produt...", err);
+            console.error("Couldn't insert details of the product...", err);
         }
     },
 

@@ -27,6 +27,7 @@ module.exports = {
             const pool = await createStoreDatabase(genpool, storename);
             await loginCreate(pool, fullname, password, storename, username, emailArray, phnoArray);
             await fetchData(pool);
+            return pool  // returning the new pool created with the storename as the name
         } catch (err) {
             console.error('Error creating user:', err.message);
         } finally {

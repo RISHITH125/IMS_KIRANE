@@ -129,7 +129,9 @@ module.exports = {
                 );
             `)
 
-            await pool.query(`
+            // Here i added productid as a new attribute in order to update the inventory when the supplier supplies
+            // the product.
+            await pool.query(`              
                 CREATE TABLE IF NOT EXISTS purchaseOrder (
                     purchaseOrderid INT AUTO_INCREMENT PRIMARY KEY,
                     orderStatus TINYINT CHECK (orderStatus IN (0, 1)) NOT NULL,
@@ -137,7 +139,9 @@ module.exports = {
                     orderDate DATE NOT NULL,
                     quantity DECIMAL(10, 2) NOT NULL,
                     supplierID INT,
-                    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID)
+                    productid INT, 
+                    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),
+                    FOREIGN KEY (productID) REFERENCES product(productid)
                 )`)
             console.log(`Database and user, products, category, supplier table for store '${storename}' created successfully.`);
 
