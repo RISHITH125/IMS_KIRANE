@@ -5,6 +5,10 @@ const { createUser } = require('./createUser.js');
 
 const { addProduct } = require('./addProduct.js')
 
+const { addSales } = require('./addSales.js');
+
+const { productSaleUpdate } = require('./sales.js');
+
 // ad hoc login 
 const genpool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -13,10 +17,12 @@ const genpool = mysql.createPool({
     database: process.env.DB_NAME
 }).promise()
 
-// pool = createUser(genpool); 
-// console.log('hi');
-// console.log('hi')
+pool = createUser(genpool); 
 
-addProduct(genpool)
+productSaleUpdate(pool);  // adding the trigger
+
+addProduct(pool)
+
+addSales(pool)
 
 // del_user(pool, 'ytrewq')
