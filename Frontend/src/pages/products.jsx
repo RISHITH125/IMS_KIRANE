@@ -4,7 +4,7 @@ import Searchbar from '../components/navbar';
 import AddProductForm from '../components/addproductform';
 import { useUser } from '../context/UserContext';
 import { Link } from 'react-router-dom';
-import { ArrowRight , PlusCircleIcon , Check} from 'lucide-react';
+import { ArrowRight, PlusCircleIcon, Check } from 'lucide-react';
 
 const InitialproductsData = [
   {
@@ -34,9 +34,9 @@ const InitialproductsData = [
   // More products here...
 ];
 
-const suppliers=[
-  {supplierID:1, supplierName:"SupplierA"},
-  {supplierID:2, supplierName:"SupplierB"},
+const suppliers = [
+  { supplierID: 1, supplierName: "SupplierA" },
+  { supplierID: 2, supplierName: "SupplierB" },
 ]
 
 const Categories = () => {
@@ -64,38 +64,40 @@ const Categories = () => {
     if (storedProducts) {
       setProductsData(JSON.parse(storedProducts));
     }
-  },[]);
+  }, []);
 
 
 
   const handleAddProduct = (newProduct) => {
     setNewProducts((prevProducts) => [...prevProducts, newProduct]);
     const existingProduct = productsData.find(product =>
-        product.categoryName.toLowerCase() === newProduct.categoryName.toLowerCase()
+      product.categoryName.toLowerCase() === newProduct.categoryName.toLowerCase()
     );
     const categoryNameToUse = existingProduct ? existingProduct.categoryName : newProduct.categoryName;
     const productWithCorrectCategory = {
-        ...newProduct,
-        categoryName: categoryNameToUse
+      ...newProduct,
+      categoryName: categoryNameToUse
     };
     const isProductExisting = productsData.some(product =>
-        product.categoryName === categoryNameToUse && product.productName === newProduct.productName
+      product.categoryName === categoryNameToUse && product.productName === newProduct.productName
     );
     if (!isProductExisting) {
-        setProductsData((prevProducts) => [...prevProducts, productWithCorrectCategory]);
+      const updatedProducts = [...productsData, productWithCorrectCategory];
+      setProductsData(updatedProducts);
+      // Store updated products data in local storage
+      localStorage.setItem('productsData', JSON.stringify(updatedProducts));
     } else {
-        console.log(`Product '${newProduct.productName}' in category '${categoryNameToUse}' already exists`);
+      console.log(`Product '${newProduct.productName}' in category '${categoryNameToUse}' already exists`);
     }
-};
+  };
 
-
-const groupedProducts = productsData.reduce((acc, product) => { 
+  const groupedProducts = productsData.reduce((acc, product) => {
     if (!acc[product.categoryName]) {
-        acc[product.categoryName] = [];
+      acc[product.categoryName] = [];
     }
     acc[product.categoryName].push(product);
     return acc;
-}, {});
+  }, {});
 
   const toggleCategory = (categoryName) => {
     setOpenCategories((prevOpenCategories) => ({
@@ -140,7 +142,7 @@ const groupedProducts = productsData.reduce((acc, product) => {
   // Example function to send `updatedItemsArray`
   const handleSubmit = () => {
     const updatedItemsArray = getUpdatedItemsArray();
-    
+
     console.log("Updated Items Array:", updatedItemsArray);
     console.log("New Products:", newProducts);
     localStorage.setItem('Products', JSON.stringify(productsData));
@@ -165,7 +167,7 @@ const groupedProducts = productsData.reduce((acc, product) => {
               <div className='w-auto flex flex-row'>
                 <h1 className="text-3xl font-semibold mb-10">Categories</h1>
                 <button onClick={openAddProductForm} className="btn  btn-md border-none mb-6 bg-blue-500 text-white py-2 px-4 rounded font-bold ml-auto">
-                  Add Product <PlusCircleIcon/>
+                  Add Product <PlusCircleIcon />
                 </button>
               </div>
 
@@ -246,9 +248,9 @@ const groupedProducts = productsData.reduce((acc, product) => {
 
               <div className='flex w-auto'>
                 <button onClick={handleSubmit} className="btn btn-md border-none mt-6 bg-blue-500 text-white py-2 px-4 rounded ml-auto mr-auto font-bold">
-                  Submit Changes <Check/>
+                  Submit Changes <Check />
                 </button>
-                {isAddProductOpen && <AddProductForm onClose={closeAddProductForm}  suppliers={suppliers} onAddProduct={handleAddProduct}/>}
+                {isAddProductOpen && <AddProductForm onClose={closeAddProductForm} suppliers={suppliers} onAddProduct={handleAddProduct} />}
               </div>
 
             </div>
