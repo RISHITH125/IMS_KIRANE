@@ -10,3 +10,12 @@ yes
 
 - notify the user when the psrticular stock is empty and also tell him about the supplier of ythat stock
 - recommending the products for particular categories of market to boost sales
+
+### Login Features
+- Firstly ask the user whether he wants to login or signup
+- Login means ask username, password, storename and check if this is existing in the database. If exists, proceed with the further operations.
+- Sign up means, idk
+
+### Features
+- We can implement a lazy analysis tool which starts to gather data and analyse only when the user wants to get insights.
+- Instead of overloading the app initially, let the user themselves click on that specific button and get the analysis done.
