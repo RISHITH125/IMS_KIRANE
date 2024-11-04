@@ -30,7 +30,10 @@ const Dashboard = () => {
         <Searchbar />
 
         {profile && username ? (
-          <div className="flex-1 p-10 bg-gray-100">
+          <div  className='felx-col h-auto w-auto'>
+            <h1 className='w-auto text-4xl font-bold pl-10 pt-5 pb-5 text-gray-700 text-center'>Dashboard</h1>
+            <hr className='b-2 bg-gray-900 w-full'></hr>
+            <div className="flex-1 p-10 bg-gray-100">
             {/* Welcome message */}
             <h1 className="text-4xl font-semibold mb-10 text-black">
               Hello, {username}
@@ -45,6 +48,8 @@ const Dashboard = () => {
               <p className="text-gray-600">This section can be updated with real-time data, graphs, etc.</p>
             </div>
           </div>
+          </div>
+          
         ) : (
           <div className="flex flex-col items-center justify-center p-10 h-auto w-full text-center bg-gray-100">
             <h1 className="text-xl font-semibold text-gray-600 mb-4">You have not signed in</h1>
