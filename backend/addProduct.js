@@ -1,4 +1,5 @@
 // Function to prompt user input
+// UI
 const { productCreate, categoryAdd, supplierAdd } = require('./product.js')
 const readline = require('readline')
 
@@ -29,17 +30,11 @@ module.exports = {
             const supplierName = await prompt('Enter supplier name: ');
 
             // Multivalued attributes for phone numbers and emails
-            const phnoCount = await prompt('How many phone numbers to add?: ');
-            let phno = [];
-            for (let i = 0; i < phnoCount; i++) {
-                phno.push(await prompt(`Enter phone number ${i + 1}: `));
-            }
-
-            const emailCount = await prompt('How many emails to add?: ');
-            let email = [];
-            for (let i = 0; i < emailCount; i++) {
-                email.push(await prompt(`Enter email ${i + 1}: `));
-            }
+            const emailstr = await prompt('Enter email/s: ');
+            const phnostr = await prompt('Enter phone number/s: ');
+            // Split the input strings into arrays
+            const email = emailstr.split(',').map(e => e.trim());
+            const phno = phnostr.split(',').map(p => p.trim());
 
             // Prompt for category details
             const categoryID = await prompt('Enter category ID: ');
