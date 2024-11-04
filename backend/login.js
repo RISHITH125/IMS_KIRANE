@@ -37,6 +37,8 @@ module.exports = {
             await pool.query(`USE \`${storename}\`;`);
 
             // Create the 'user' table
+
+            // location attribute must be added
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS user (
                     userid INT AUTO_INCREMENT PRIMARY KEY,
@@ -114,6 +116,33 @@ module.exports = {
                     FOREIGN KEY (categoryID) REFERENCES category(categoryID)    -- Assuming you have a categories table
                 );
             `);
+
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS sales (
+                    salesid INT AUTO_INCREMENT PRIMARY KEY,    -- Unique identifier for each sale
+                    productid INT,                             -- Foreign key to the Product table
+                    quantitySold INT NOT NULL,                 -- Quantity sold in this sale
+                    salesPrice DECIMAL(10, 2) NOT NULL,        -- Price at which the product was sold
+                    totalAmount DECIMAL(10, 2) AS (quantitySold * SalesPrice) STORED, -- Total amount for this sale
+                    paymentMethod VARCHAR(40),                 -- Method of payment used (e.g., cash, card)
+                    FOREIGN KEY (productID) REFERENCES product(productid)
+                );
+            `)
+
+            // Here i added productid as a new attribute in order to update the inventory when the supplier supplies
+            // the product.
+            await pool.query(`              
+                CREATE TABLE IF NOT EXISTS purchaseOrder (
+                    purchaseOrderid INT AUTO_INCREMENT PRIMARY KEY,
+                    orderStatus TINYINT CHECK (orderStatus IN (0, 1)) NOT NULL,
+                    deliveryDate DATE NOT NULL,
+                    orderDate DATE NOT NULL,
+                    quantity DECIMAL(10, 2) NOT NULL,
+                    supplierID INT,
+                    productid INT, 
+                    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),
+                    FOREIGN KEY (productID) REFERENCES product(productid)
+                )`)
             console.log(`Database and user, products, category, supplier table for store '${storename}' created successfully.`);
 
             return pool;
