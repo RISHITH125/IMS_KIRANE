@@ -32,7 +32,7 @@ const Sidebar = () => {
           <FiBox className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Products"}
         </Link>
-        <Link to="/orders" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+        <Link to="/suppliers" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
           <FiShoppingCart className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Orders"}
         </Link>
