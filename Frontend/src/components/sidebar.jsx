@@ -36,10 +36,10 @@ const Sidebar = () => {
           <FiShoppingCart className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Orders"}
         </Link>
-        <Link to="/settings" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mt-auto mb-4' : 'justify-center p-2 mt-auto mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+        {/* <Link to="/settings" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mt-auto mb-4' : 'justify-center p-2 mt-auto mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
           <FiSettings className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Settings"}
-        </Link>
+        </Link> */}
       </nav>
     </div>
   );

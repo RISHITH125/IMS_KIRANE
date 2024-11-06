@@ -8,22 +8,26 @@ import Suppliers from "./pages/suppliers";
 // import Profile from "./pages/profile";
 // import Alerts from "./pages/alerts";
 import { UserProvider } from "./context/UserContext";
+import { ProductsProvider } from "./context/ProductsContext";
 
 
 const App = () => {
   return (
-    <UserProvider>
-      <Router>
-        <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/auth" element={<Authentication />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/suppliers" element={<Suppliers />} />
-          {/* <Route path="/profile" element={<Profile />} /> */}
-          {/* <Route path="/alerts" element={<Alerts />} /> */}
-        </Routes>
-      </Router>
-    </UserProvider>
+    <ProductsProvider>
+      <UserProvider>
+        <Router>
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/auth" element={<Authentication />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/suppliers" element={<Suppliers />} />
+            {/* <Route path="/profile" element={<Profile />} /> */}
+            {/* <Route path="/alerts" element={<Alerts />} /> */}
+          </Routes>
+        </Router>
+      </UserProvider>
+    </ProductsProvider>
+
   );
 };
 

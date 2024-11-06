@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
+import { Calendar } from 'lucide-react';
 
 const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
     const [formData, setFormData] = useState({
         productName: '',
-        price: '',  // Make sure this is a string to work with the input
-        supplierID: '',  // Changed supplierName to supplierID for consistency
+        price: '',
+        supplierID: '',
         categoryName: '',
         quantity: '',
         reorderLevel: '',
-        expiry: '',  // This will now be a date input
-        dateadded: new Date().toISOString().split('T')[0] // Format as yyyy-mm-dd
+        expiry: '',
+        dateadded: new Date().toISOString().split('T')[0]
     });
 
     const handleChange = (e) => {
@@ -22,14 +23,14 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
         e.preventDefault();
         const newProduct = {
             ...formData,
-            price: Number(formData.price), 
+            price: Number(formData.price),
             quantity: Number(formData.quantity),
-            productid: Date.now(), // Unique productID (you could also use a library for unique IDs)
-            categoryID: Math.floor(Math.random() * 1000) // Random categoryID for now
+            productID: Date.now(),
+            categoryID: Math.floor(Math.random() * 1000)
         };
         console.log("New Product Data:", newProduct);
-        onAddProduct(newProduct); // Add the new product to the parent state
-        onClose(); // Uncomment to close the form after submission
+        onAddProduct(newProduct);
+        onClose();
     };
 
     return (
@@ -48,8 +49,8 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                                 name={field}
                                 value={formData[field]}
                                 onChange={handleChange}
-                                required // Make this field compulsory
-                                className="input input-sm input-bordered w-full p-2 border rounded bg-white"
+                                required
+                                className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
                             />
                         </div>
                     ))}
@@ -57,25 +58,28 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                         <div key={field}>
                             <label className="block font-semibold mb-1">{field}</label>
                             <input
-                                type="number" // Ensures only number inputs are accepted
+                                type="number"
                                 name={field}
                                 value={formData[field]}
                                 onChange={handleChange}
-                                required // Make this field compulsory
-                                className="input input-sm input-bordered w-full p-2 border rounded bg-white"
+                                required
+                                className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
                             />
                         </div>
                     ))}
                     <div>
                         <label className="block font-semibold mb-1">Expiry Date</label>
-                        <input
-                            type="date" // This will default to YYYY-MM-DD format
-                            name="expiry"
-                            value={formData.expiry}
-                            onChange={handleChange}
-                            required // Make this field compulsory
-                            className="input input-sm input-bordered w-full p-2 border rounded bg-white"
-                        />
+                        <div className="flex items-center space-x-2">
+                            <Calendar size={24} className="text-gray-500" />
+                            <input
+                                type="date"
+                                name="expiry"
+                                value={formData.expiry}
+                                onChange={handleChange}
+                                required
+                                className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
+                            />
+                        </div>
                     </div>
                     <div>
                         <label className="block font-semibold mb-1">Supplier</label>
@@ -83,10 +87,10 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                             name="supplierID"
                             value={formData.supplierID}
                             onChange={handleChange}
-                            required // Make this field compulsory
-                            className="input input-md input-bordered w-full p-2 border rounded bg-white mb-2"
+                            required
+                            className="input input-md input-bordered w-full p-2 border rounded bg-gray-100 mb-2"
                         >
-                            <option value="" disabled className='font-semibold text-gray-800'>Select Supplier</option>
+                            <option value="" disabled className="font-semibold text-gray-800">Select Supplier</option>
                             {suppliers.map((supplier) => (
                                 <option key={supplier.supplierID} value={supplier.supplierID}>{supplier.supplierName}</option>
                             ))}

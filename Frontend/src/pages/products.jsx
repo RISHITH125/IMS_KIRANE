@@ -3,36 +3,37 @@ import Sidebar from '../components/sidebar';
 import Searchbar from '../components/navbar';
 import AddProductForm from '../components/addproductform';
 import { useUser } from '../context/UserContext';
+import {useProducts} from '../context/ProductsContext';
 import { Link } from 'react-router-dom';
 import { ArrowRight, PlusCircleIcon, Check } from 'lucide-react';
 
-const InitialproductsData = [
-  {
-    productid: 13,
-    productName: "milk",
-    price: 26,
-    supplierID: 13,
-    categoryID: 13,
-    categoryName: "Dairy",
-    quantity: 4,
-    reorderLevel: 2,
-    expiry: "2024-11-04T18:30:00.000Z",
-    dateadded: "2024-11-02T18:30:00.000Z"
-  },
-  {
-    productid: 14,
-    productName: "Apples",
-    price: 100,
-    supplierID: 101,
-    categoryID: 1,
-    categoryName: "Fruits",
-    quantity: 45,
-    reorderLevel: 20,
-    expiry: "2024-11-02T18:30:00.000Z",
-    dateadded: "2024-11-02T18:30:00.000Z"
-  },
-  // More products here...
-];
+// const InitialproductsData = [
+//   {
+//     productid: 13,
+//     productName: "milk",
+//     price: 26,
+//     supplierID: 13,
+//     categoryID: 13,
+//     categoryName: "Dairy",
+//     quantity: 4,
+//     reorderLevel: 2,
+//     expiry: "2024-11-04T18:30:00.000Z",
+//     dateadded: "2024-11-02T18:30:00.000Z"
+//   },
+//   {
+//     productid: 14,
+//     productName: "Apples",
+//     price: 100,
+//     supplierID: 101,
+//     categoryID: 1,
+//     categoryName: "Fruits",
+//     quantity: 45,
+//     reorderLevel: 20,
+//     expiry: "2024-11-02T18:30:00.000Z",
+//     dateadded: "2024-11-02T18:30:00.000Z"
+//   },
+//   // More products here...
+// ];
 
 const suppliers = [
   { supplierID: 1, supplierName: "SupplierA" },
@@ -41,7 +42,7 @@ const suppliers = [
 
 const Categories = () => {
   const [openCategories, setOpenCategories] = useState({});
-  const [productsData, setProductsData] = useState(InitialproductsData);
+  // const [productsData, setProductsData] = useState(InitialproductsData);
   const [newProducts, setNewProducts] = useState([]);
   const [updatedItems, setUpdatedItems] = useState({});
   const [quantityInput, setQuantityInput] = useState({});
@@ -49,7 +50,7 @@ const Categories = () => {
 
 
   const { profile } = useUser();
-
+  const { productsData ,setProductsData } = useProducts();
   // const handleAddProduct = (newProduct) => {
   //   const upperCaseCategory = newProduct.categoryName.toUpperCase();
   //   const existingProduct = productsData.find(product => product.productName.toUpperCase() === upperCaseCategory);
@@ -250,7 +251,7 @@ const Categories = () => {
                 <button onClick={handleSubmit} className="btn btn-md border-none mt-6 bg-blue-500 text-white py-2 px-4 rounded ml-auto mr-auto font-bold">
                   Submit Changes <Check />
                 </button>
-                {isAddProductOpen && <AddProductForm onClose={closeAddProductForm} suppliers={suppliers} onAddProduct={handleAddProduct} />}
+                {isAddProductOpen && <AddProductForm onClose={closeAddProductForm} suppliers={suppliers} products={productsData}  onAddProduct={handleAddProduct} />}
               </div>
 
             </div>
