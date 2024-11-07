@@ -42,9 +42,12 @@ module.exports = {
                 ON purchaseOrder
                 FOR EACH ROW
                 BEGIN
-                    UPDATE product 
-                    SET quantity = quantity + NEW.quantity 
-                    WHERE productid = NEW.productid;
+                    -- Check if the new order status is 1 (indicating the order has been received)
+                    IF NEW.orderStatus = 1 THEN
+                        UPDATE product 
+                        SET quantity = quantity + NEW.quantity 
+                        WHERE productid = NEW.productid;
+                    END IF;
                 END;
             `);
             console.log('Trigger created successfully for purchase updates.');

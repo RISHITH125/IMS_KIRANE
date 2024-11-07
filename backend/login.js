@@ -1,3 +1,5 @@
+// updated category description to contain null values 04/11/2024
+
 const bcrypt = require('bcrypt');
 const mysql = require('mysql2');
 
@@ -29,7 +31,7 @@ module.exports = {
                 host: process.env.DB_HOST,
                 user: process.env.DB_USER,
                 password: process.env.DB_PASSWORD,
-                database: storename, // Now use the new database
+                database: process.env.DB_NAME, // Now use the new database
             }).promise();
     
 
@@ -69,7 +71,7 @@ module.exports = {
             // Create the supplier table
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS supplier (
-                    supplierID INT PRIMARY KEY,
+                    supplierID INT AUTO_INCREMENT PRIMARY KEY,
                     address VARCHAR(255) NOT NULL,
                     supplierName VARCHAR(50) NOT NULL
                 );
@@ -95,15 +97,15 @@ module.exports = {
 
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS category (
-                    categoryID INT PRIMARY KEY,
-                    description TEXT NOT NULL,     -- Using TEXT for a potentially larger description
+                    categoryID INT AUTO_INCREMENT PRIMARY KEY,
+                    description TEXT,     -- Using TEXT for a potentially larger description
                     categoryName VARCHAR(50) NOT NULL
                 );
             `);
 
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS product (
-                    productid INT PRIMARY KEY,
+                    productid INT AUTO_INCREMENT PRIMARY KEY,
                     productName VARCHAR(50) NOT NULL,
                     price FLOAT NOT NULL,
                     supplierID INT,

@@ -10,8 +10,12 @@ module.exports = {
             const deliveryDate = prompt('Enter delivery date (YYYY-MM-DD): ');
             const orderDate = prompt('Enter order date (YYYY-MM-DD): ');
             const quantity = parseFloat(prompt('Enter quantity: '));
-            const supplierID = parseInt(prompt('Enter supplier ID: '));
-            const productid = parseInt(prompt('Enter product ID: '));
+            // need to be coded
+            // const supplierName = prompt('Enter supplier name: ');
+            // const productName = prompt('Enter product name: ');
+            // const categoryName = prompt('Enter category name: ');
+            // const supplierAddress = prompt('Enter supplier address')
+            // const 
 
             await addPurchase(pool, orderStatus, deliveryDate, orderDate, quantity, supplierID, productid);
         } catch(err) {
