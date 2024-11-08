@@ -24,22 +24,22 @@ const Sidebar = () => {
 
       {/* Navigation Links */}
       <nav className={`mt-10 ${sidebarOpen ? '' : 'flex flex-col items-center'}`}>
-        <Link to="/dashboard" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4' : 'justify-center p-2'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
-          <FiHome className={sidebarOpen ? "mr-3" : ""} />
+        <Link to="/dashboard" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+          <FiHome className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Dashboard"}
         </Link>
-        <Link to="/products" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4' : 'justify-center p-2'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
-          <FiBox className={sidebarOpen ? "mr-3" : ""} />
+        <Link to="/products" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+          <FiBox className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Products"}
         </Link>
-        <Link to="/orders" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4' : 'justify-center p-2'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
-          <FiShoppingCart className={sidebarOpen ? "mr-3" : ""} />
+        <Link to="/suppliers" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+          <FiShoppingCart className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Orders"}
         </Link>
-        <Link to="/settings" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4' : 'justify-center p-2 mt-auto'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
-          <FiSettings className={sidebarOpen ? "mr-3" : ""} />
+        {/* <Link to="/settings" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mt-auto mb-4' : 'justify-center p-2 mt-auto mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+          <FiSettings className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Settings"}
-        </Link>
+        </Link> */}
       </nav>
     </div>
   );
