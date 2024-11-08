@@ -3,7 +3,7 @@ require('dotenv').config();
 // const mysql = require('mysql2');
 const mysql = require('mysql2/promise');
 
-const { createStoreDatabase } = require('./login.js')
+const { createStoreDatabase, loginPage, signUpPage, googleAuth } = require('./login.js')
 const {dispSupplier} = require('./supplierDisp.js') 
 const { purchaseDisp } = require('./purchaseDisp.js')
 const { prodCatDisp } = require('./prodCatDisp.js')
@@ -24,15 +24,67 @@ const genpool = mysql.createPool({
 // const pool = createStoreDatabase(genpool, 'lkjhg')
 
 (async () => {
-    // const auth = 
+    const storename = 'something'
 
-    const pool = await createStoreDatabase(genpool, 'lkjhg');
+    // const pool = await createStoreDatabase(genpool, 'lkjhg');
 
     // Ensure that `pool` is defined before setting up routes
-    if (!pool) {
-        console.error('Failed to create store database.');
-        return;
-    }
+    // if (!pool) {
+    //     console.error('Failed to create store database.');
+    //     return;
+    // }
+
+    app.post('/login', async (req, res) => {
+        try {
+            const { email, password } = req.body;  // Using email and password fields
+            
+            // Call a login function to authenticate the user
+            const result = await loginPage(genpool, email, password); // Assumes you have a `loginUser` function
+    
+            if (result.success) {
+                storename = result.data
+                res.status(200).json({ message: result.data });
+            } else {
+                res.status(404).json({ message: result.message });
+            }
+    
+        } catch (error) {
+            console.error('Error during login:', error);
+            res.status(500).send('Error logging in');
+        }
+    });    
+
+    app.post('/signup', async (res, req) => {
+        try {
+            const { username, email, password } = req.body;
+
+            const result = await signUpPage(genpool, username, email, password)
+            if(result.success) {
+                res.status(200).json({ message: result.message })
+            } else {
+                res.status(404).json({ message: result.message })
+            }
+        } catch (err) {
+            console.error('Error occcured while signup checking...', err)
+            res.status(500).send('Error checking signup credentials')
+        }
+    })
+
+    app.post('/auth', async (res, req) => {
+        try {
+            const { username, email, jti } = req.body
+
+            const result = await googleAuth(genpool, username, email, jti)
+            if(result.success) {
+                res.status(200).json({ message: result.message })
+            } else {
+                res.status(404).json({ message: result.message })
+            }
+        } catch (err) {
+            console.error('Error occured while chekcing google auth: ', err)
+            res.status(500).send('Error checking auth credentials')
+        }
+    })
 
     // Route to fetch all product data
     app.get('/products', async (req, res) => {

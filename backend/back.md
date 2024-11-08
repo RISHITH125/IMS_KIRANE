@@ -31,7 +31,7 @@ yes
 - Login page maadu
 - create a job to check quantity for all products at regular intervals to check if it falls below reorderLevel
 - create a job to check the expiry of products
-- 
+- need to create new functions for the login part
 
 
 
