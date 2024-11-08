@@ -24,35 +24,49 @@ category information is:
     categoryName
 */
 module.exports = {
-    productCreate: async function(pool, productID, productName, price, expiryDate, supplierId, categoryId, quantity, reorderLevel) {
+    productCreate: async function(pool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiryDate) {
         // dateAdded is the day that the user adds the product.
         try {
             const dateAdded = new Date().toISOString().split('T')[0];
-            
-            await pool.query(`INSERT INTO product(productID, productName, price, supplierId, categoryId, quantity, reorderLevel, expiry, dateAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [productID, productName, price, supplierId, categoryId, quantity, reorderLevel, expiryDate, dateAdded]);        
-                
+            await pool.query(
+                `INSERT INTO product (productName, price, supplierID, categoryID, quantity, reorderLevel, expiry, dateadded) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
+                [productName, price, supplierID, categoryID, quantity, reorderLevel, expiryDate, dateAdded]
+            );
         } catch (err) {
             console.error("Couldn't insert details of the product...", err);
         }
     },
 
-    categoryAdd: async function(pool, categoryID, description, categoryName) {
+    updateProdQuant: async function (pool, productid, newQuantity) {
         try {
             await pool.query(`
-                INSERT IGNORE INTO category(categoryID, description, categoryName) 
-                VALUES (?, ?, ?)`, [categoryID, description, categoryName]);
+                UPDATE product 
+                SET quantity = ?
+                WHERE productid = ?;
+            `, [newQuantity, productid])
+        } catch(err) {
+            console.error("Couldn't update the product quantity anonymously")
+        }
+    },
+
+    categoryAdd: async function(pool, description, categoryName) {
+        try {
+            await pool.query(`
+                INSERT IGNORE INTO category(description, categoryName) 
+                VALUES (?, ?)`, [description, categoryName]);
         } catch (err) {
             console.error("Couldn't insert details of the category...", err);
         }
     },
 
-    supplierAdd: async function(pool, supplierID, address, supplierName, phnoArray, emailArray) {
+    supplierAdd: async function(pool, address, supplierName, phnoArray, emailArray) {
         try {
             // Insert into supplier table
             await pool.query(`
                 INSERT IGNORE INTO supplier (
-                supplierID, address, supplierName) 
-                VALUES (?, ?, ?)`, [supplierID, address, supplierName]);
+                address, supplierName) 
+                VALUES (?, ?)`, [address, supplierName]);
     
             // Insert phone numbers into supplier_phno table
             for (const phno of phnoArray) {

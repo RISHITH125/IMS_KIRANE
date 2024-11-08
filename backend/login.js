@@ -1,3 +1,5 @@
+// updated category description to contain null values 04/11/2024
+
 const bcrypt = require('bcrypt');
 const mysql = require('mysql2');
 
@@ -20,6 +22,110 @@ module.exports = {
         }
     },
 
+    // this is for /login api
+    loginPage: async function (genpool, email, password) {
+        try {
+            await genpool.query(`USE store;`);
+    
+            const [rows] = await genpool.query(
+                `SELECT storename FROM user WHERE email = ? AND password = ?`,
+                [email, password]
+            );
+    
+            if (rows.length === 0) {
+                return {
+                    success: false,
+                    message: "User not found or incorrect credentials",
+                };
+            } else {
+                return {
+                    success: true,
+                    data: rows[0] // Assuming you want the first matching row
+                };
+            }
+        } catch (err) {
+            console.error("Wasn't able to access the store database or the user table does not exist!", err);
+            return {
+                success: false,
+                message: "Database error",
+                error: err
+            };
+        }
+    },    
+
+    // this is for signup endpoint
+    signUpPage: async function (genpool, username, email, password) {
+        try {
+            await genpool.query(`USE store;`);
+            
+            // Check if the user already exists
+            const [rows] = await genpool.query(`
+                SELECT storename FROM user WHERE username = ? AND email = ? AND passwordhash = SHA2(?, 256)
+            `, [username, email, password]);
+    
+            if (rows.length === 0) {
+                // Insert new user if they don't exist
+                await genpool.query(`
+                    INSERT INTO user (username, email, passwordhash, dateCreated) 
+                    VALUES (?, ?, SHA2(?, 256), CURDATE());
+                `, [username, email, password]);
+    
+                return {
+                    success: true,
+                    message: "User registered successfully!"
+                };
+            } else {
+                return {
+                    success: false,
+                    message: "Account already exists!"
+                };
+            }
+        } catch (err) {
+            console.error('Error while inserting into user table:', err);
+            return {
+                success: false,
+                message: "Database error",
+                error: err
+            };
+        }
+    },
+    
+
+    // this is for the auth page
+    googleAuth: async function (genpool, username, email, jti) {
+        try {
+            // Check if the user with Google Auth exists
+            const [rows] = await genpool.query(`
+                SELECT storename FROM user WHERE username = ? AND email = ? AND jti = ?
+            `, [username, email, jti]);
+    
+            if (rows.length === 0) {
+                // Insert new user if they don't exist
+                await genpool.query(`
+                    INSERT INTO user (username, email, jti, dateCreated) 
+                    VALUES (?, ?, ?, CURDATE());
+                `, [username, email, jti]);
+    
+                return {
+                    success: true,
+                    message: "New user registered with Google Auth!"
+                };
+            } else {
+                return {
+                    success: true,
+                    message: "Account exists"
+                };
+            }
+        } catch (err) {
+            console.error("Couldn't add or verify details:", err);
+            return {
+                success: false,
+                message: "Database error",
+                error: err
+            };
+        }
+    },    
+
     createStoreDatabase: async function(genpool, storename) {
         try {
             // Create the database dynamically
@@ -29,14 +135,12 @@ module.exports = {
                 host: process.env.DB_HOST,
                 user: process.env.DB_USER,
                 password: process.env.DB_PASSWORD,
-                database: storename, // Now use the new database
+                database: process.env.DB_NAME, // Now use the new database
             }).promise();
     
 
             // Use the newly created database
             await pool.query(`USE \`${storename}\`;`);
-
-            // Create the 'user' table
 
             // location attribute must be added
             await pool.query(`
@@ -69,7 +173,7 @@ module.exports = {
             // Create the supplier table
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS supplier (
-                    supplierID INT PRIMARY KEY,
+                    supplierID INT AUTO_INCREMENT PRIMARY KEY,
                     address VARCHAR(255) NOT NULL,
                     supplierName VARCHAR(50) NOT NULL
                 );
@@ -95,15 +199,15 @@ module.exports = {
 
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS category (
-                    categoryID INT PRIMARY KEY,
-                    description TEXT NOT NULL,     -- Using TEXT for a potentially larger description
+                    categoryID INT AUTO_INCREMENT PRIMARY KEY,
+                    description TEXT,     -- Using TEXT for a potentially larger description
                     categoryName VARCHAR(50) NOT NULL
                 );
             `);
 
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS product (
-                    productid INT PRIMARY KEY,
+                    productid INT AUTO_INCREMENT PRIMARY KEY,
                     productName VARCHAR(50) NOT NULL,
                     price FLOAT NOT NULL,
                     supplierID INT,

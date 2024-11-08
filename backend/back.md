@@ -19,3 +19,22 @@ yes
 ### Features
 - We can implement a lazy analysis tool which starts to gather data and analyse only when the user wants to get insights.
 - Instead of overloading the app initially, let the user themselves click on that specific button and get the analysis done.
+
+
+### New Features
+- The user mustn't specify for the categoryID or productID. The application must handle it at the backend i.e.
+    it must search for the specified category/supplier in the table. If it exists, it returns the id of that and stores it in the product page.
+- Updating the product quantity anonymously
+- supplier page nalli, avn supply maadiro products na category wise display maadbeeku aamele, user ge place order antha option irutte. user, adrmeele click maadidaga purchaseOrder table update aagutte with orderStatus as 0.
+- supplier page nalli, he shud be able to add new suppliers. after this, this new supplier will be reflected in the products page only then will he be able to add a new product.
+- supplier page nalli, he shud be able to add new products. integrate that with existing functionalities to add products. 
+- Login page maadu
+- create a job to check quantity for all products at regular intervals to check if it falls below reorderLevel
+- create a job to check the expiry of products
+- need to create new functions for the login part
+
+
+
+
+#### // needs to be discussed 
+#### // need to be coded
