@@ -6,6 +6,7 @@ import PlaceOrder from '../components/placeOrder';
 import { Link } from 'react-router-dom';
 import { ArrowRight, DiamondPlus, UserPlus, CheckSquare, ArrowBigDownDashIcon, ArrowBigUpDashIcon, Menu } from 'lucide-react';
 import { useProducts } from '../context/ProductsContext';
+import { useOrders } from '../context/OrdersContext';
 import AddSupplierForm from '../components/addSupplierform';
 // Dummy Data for suppliers
 const dummySuppliers = [
@@ -41,28 +42,7 @@ const Suppliers = () => {
     const [newSupplier, setNewSupplier] = useState([]);
 
     const [newOrder, setNewOrder] = useState([]);
-    const [orders, setOrders] = useState(JSON.parse(localStorage.getItem('orders')) || [
-        {
-            purchaseOrderid: 101,
-            orderStatus: 1,
-            deliveryDate: "2024-11-15",
-            orderDate: "2024-11-01",
-            quantity: 50.00,
-            supplierName: 1,
-            supplierID: 1,
-            productName: "Panner"
-        },
-        {
-            purchaseOrderid: 102,
-            orderStatus: 0,
-            deliveryDate: "2024-11-20",
-            orderDate: "2024-11-05",
-            quantity: 30.00,
-            supplierName: 1,
-            supplierID: 2,
-            productName: "Tomato"
-        },
-    ]);
+    const { orders, setOrders } = useOrders();
     const [expandedSuppliers, setExpandedSuppliers] = useState({});
     const [expandedOrders, setExpandedOrders] = useState({});
     const [isPlaceOrderOpen, setIsPlaceOrderOpen] = useState(false);
