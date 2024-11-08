@@ -205,7 +205,54 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
                                     </select>
                                 </div>
                             )}
-
+                            {formData[currentProductIndex].isNewProduct && (
+                                <div>
+                                    <div>
+                                        <label className="block font-semibold mb-1">Product Name</label>
+                                        <input
+                                            type="text"
+                                            name="productName"
+                                            value={formData[currentProductIndex].productName}
+                                            onChange={handleChange}
+                                            required
+                                            className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold mb-1">Price</label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            value={formData[currentProductIndex].price}
+                                            onChange={handleChange}
+                                            required
+                                            className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold mb-1">Category</label>
+                                        <input
+                                            type="text"
+                                            name="categoryName"
+                                            value={formData[currentProductIndex].categoryName}
+                                            onChange={handleChange}
+                                            required
+                                            className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold mb-1">Reorder Level</label>
+                                        <input
+                                            type="number"
+                                            name="reorderLevel"
+                                            value={formData[currentProductIndex].reorderLevel}
+                                            onChange={handleChange}
+                                            required
+                                            className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                             {/* Quantity input */}
                             <div>
                                 <label className="block font-semibold mb-1">Quantity</label>
