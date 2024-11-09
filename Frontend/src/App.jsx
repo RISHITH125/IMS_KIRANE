@@ -10,9 +10,12 @@ import Suppliers from "./pages/suppliers";
 import { UserProvider } from "./context/UserContext";
 import { ProductsProvider } from "./context/ProductsContext";
 import { OrdersProvider } from "./context/OrdersContext";
+import { SuppliersProvider } from "./context/SupplierContext";
 
 const App = () => {
   return (
+    <SuppliersProvider>
+      
     <OrdersProvider>
       <ProductsProvider>
       <UserProvider>
@@ -28,7 +31,8 @@ const App = () => {
         </Router>
       </UserProvider>
     </ProductsProvider>
-    </OrdersProvider>    
+    </OrdersProvider>  
+    </SuppliersProvider>  
   );
 };
 

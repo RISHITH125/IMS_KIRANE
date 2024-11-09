@@ -6,68 +6,31 @@ import { useUser } from '../context/UserContext';
 import {useProducts} from '../context/ProductsContext';
 import { Link } from 'react-router-dom';
 import { ArrowRight, PlusCircleIcon, Check } from 'lucide-react';
-
-// const InitialproductsData = [
-//   {
-//     productid: 13,
-//     productName: "milk",
-//     price: 26,
-//     supplierID: 13,
-//     categoryID: 13,
-//     categoryName: "Dairy",
-//     quantity: 4,
-//     reorderLevel: 2,
-//     expiry: "2024-11-04T18:30:00.000Z",
-//     dateadded: "2024-11-02T18:30:00.000Z"
-//   },
-//   {
-//     productid: 14,
-//     productName: "Apples",
-//     price: 100,
-//     supplierID: 101,
-//     categoryID: 1,
-//     categoryName: "Fruits",
-//     quantity: 45,
-//     reorderLevel: 20,
-//     expiry: "2024-11-02T18:30:00.000Z",
-//     dateadded: "2024-11-02T18:30:00.000Z"
-//   },
-//   // More products here...
-// ];
-
-const suppliers = [
-  { supplierID: 1, supplierName: "SupplierA" },
-  { supplierID: 2, supplierName: "SupplierB" },
-]
+import { useSuppliers } from '../context/SupplierContext';
 
 const Categories = () => {
   const [openCategories, setOpenCategories] = useState({});
-  // const [productsData, setProductsData] = useState(InitialproductsData);
   const [newProducts, setNewProducts] = useState([]);
   const [updatedItems, setUpdatedItems] = useState({});
   const [quantityInput, setQuantityInput] = useState({});
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const {suppliers} = useSuppliers();
+
 
 
   const { profile } = useUser();
   const { productsData ,setProductsData } = useProducts();
-  // const handleAddProduct = (newProduct) => {
-  //   const upperCaseCategory = newProduct.categoryName.toUpperCase();
-  //   const existingProduct = productsData.find(product => product.productName.toUpperCase() === upperCaseCategory);
-  //   if(!existingProduct)
-  //     setProductsData((prevProducts) => [...prevProducts, newProduct]);
-  //   else
-  //     console.log((existingProduct)+" already exists");
-  // }
+
+  const [filteredProducts, setFilteredProducts] = useState(productsData);
 
   useEffect(() => {
     const storedProducts = localStorage.getItem('Products');
     if (storedProducts) {
-      setProductsData(JSON.parse(storedProducts));
+      const parsedProducts = JSON.parse(storedProducts);
+      setProductsData(parsedProducts);
+      setFilteredProducts(parsedProducts); // Initialize filtered products
     }
-  }, []);
-
-
+  }, [])
 
   const handleAddProduct = (newProduct) => {
     setNewProducts((prevProducts) => [...prevProducts, newProduct]);
@@ -92,13 +55,13 @@ const Categories = () => {
     }
   };
 
-  const groupedProducts = productsData.reduce((acc, product) => {
+  const groupedProducts = (filteredProducts.length > 0 ? filteredProducts : productsData).reduce((acc, product) => {
     if (!acc[product.categoryName]) {
-      acc[product.categoryName] = [];
+        acc[product.categoryName] = [];
     }
     acc[product.categoryName].push(product);
     return acc;
-  }, {});
+}, {});
 
   const toggleCategory = (categoryName) => {
     setOpenCategories((prevOpenCategories) => ({
@@ -153,13 +116,15 @@ const Categories = () => {
   const openAddProductForm = () => setIsAddProductOpen(true);
   const closeAddProductForm = () => setIsAddProductOpen(false);
 
-
+  const handleFilter = (filteredData) => {
+    setFilteredProducts(filteredData);
+  };
 
   return (
     <div className="flex">
       <Sidebar />
       <div className="flex-1 w-screen h-auto bg-gray-100">
-        <Searchbar />
+        <Searchbar data={productsData} onFilter={handleFilter} />
         {profile && profile.name ? (
           <div className='felx-col h-auto w-auto'>
             <h1 className='w-auto text-4xl font-bold pl-10 pt-5 pb-5 text-gray-700 text-center'>Products</h1>
@@ -190,6 +155,7 @@ const Categories = () => {
                       <table className="w-full border-collapse bg-gray-50">
                         <thead>
                           <tr className="border-b-2 border-gray-200 bg-gray-100">
+                            <th className="p-2 text-left font-semibold">Product ID</th>
                             <th className="p-2 text-left font-semibold">Product Name</th>
                             <th className="p-2 text-left font-semibold">Price</th>
                             <th className="p-2 text-left font-semibold">Quantity</th>
@@ -200,13 +166,14 @@ const Categories = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {products.map((product) => {
+                          {products.map((product,index) => {
                             const quantity = updatedItems[product.productid]?.quantity ?? product.quantity;
 
                             if (quantity <= 0) return null;
 
                             return (
-                              <tr key={product.productid} className="border-b border-gray-200">
+                              <tr key={index} className="border-b border-gray-200">
+                                <td className="p-2 text-gray-700">{product.productID}</td>
                                 <td className="p-2 text-gray-700">{product.productName}</td>
                                 <td className="p-2 text-gray-700">${product.price.toFixed(2)}</td>
                                 <td className="p-2 text-gray-700">{quantity}</td>

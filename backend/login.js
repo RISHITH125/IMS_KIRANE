@@ -53,6 +53,8 @@ module.exports = {
         }
     },    
 
+    
+
     // this is for signup endpoint
     signUpPage: async function (genpool, username, email, password) {
         try {
@@ -66,9 +68,9 @@ module.exports = {
             if (rows.length === 0) {
                 // Insert new user if they don't exist
                 await genpool.query(`
-                    INSERT INTO user (username, email, passwordhash, dateCreated) 
-                    VALUES (?, ?, SHA2(?, 256), CURDATE());
-                `, [username, email, password]);
+                    INSERT INTO user (username,passwordhash, email, jti, dateCreated) 
+                    VALUES (?, SHA2(?, 256), ?, CURDATE());
+                `, [username, password, email, null]);
     
                 return {
                     success: true,
@@ -102,9 +104,9 @@ module.exports = {
             if (rows.length === 0) {
                 // Insert new user if they don't exist
                 await genpool.query(`
-                    INSERT INTO user (username, email, jti, dateCreated) 
-                    VALUES (?, ?, ?, CURDATE());
-                `, [username, email, jti]);
+                    INSERT INTO user (username,passwordhash,email, jti, dateCreated) 
+                    VALUES (?, ?, ?, ?, CURDATE());
+                `, [username, null, email, jti]);
     
                 return {
                     success: true,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/sidebar';
 import Searchbar from '../components/navbar';
 import { useUser } from '../context/UserContext';
@@ -8,44 +8,21 @@ import { ArrowRight, DiamondPlus, UserPlus, CheckSquare, ArrowBigDownDashIcon, A
 import { useProducts } from '../context/ProductsContext';
 import { useOrders } from '../context/OrdersContext';
 import AddSupplierForm from '../components/addSupplierform';
-// Dummy Data for suppliers
-const dummySuppliers = [
-    {
-        supplierID: 1,
-        supplierName: "Supplier A",
-        address: "123 Main St, Springfield",
-        phoneNumbers: ["123-456-7890", "098-765-4321"],
-        emails: ["contact@supplierA.com", "support@supplierA.com"]
-    },
-    {
-        supplierID: 2,
-        supplierName: "Supplier B",
-        address: "456 Elm St, Gotham",
-        phoneNumbers: ["234-567-8901"],
-        emails: ["info@supplierB.com"]
-    },
-    {
-        supplierID: 3,
-        supplierName: "Supplier C",
-        address: "789 Maple St, Metropolis",
-        phoneNumbers: ["345-678-9012", "210-987-6543"],
-        emails: ["sales@supplierC.com", "help@supplierC.com"]
-    },
-    // Add more suppliers as needed
-];
-
+import { useSuppliers } from '../context/SupplierContext';
 
 const Suppliers = () => {
     const { productsData } = useProducts();
     const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
-    const [suppliers, setSuppliers] = useState(dummySuppliers);
-    const [newSupplier, setNewSupplier] = useState([]);
-
+    const [newSupplier, setNewSupplier, addSupplier] = useState([]);
+    const { suppliers, setSuppliers } = useSuppliers();
     const [newOrder, setNewOrder] = useState([]);
     const { orders, setOrders } = useOrders();
     const [expandedSuppliers, setExpandedSuppliers] = useState({});
     const [expandedOrders, setExpandedOrders] = useState({});
     const [isPlaceOrderOpen, setIsPlaceOrderOpen] = useState(false);
+
+    const [filteredOrders, setFilteredOrders] = useState([]);
+
 
     const toggleSupplier = (supplierID) => {
         setExpandedSuppliers((prev) => ({
@@ -91,7 +68,7 @@ const Suppliers = () => {
         }, {});
     };
 
-    const groupedOrders = groupOrdersByPurchaseOrder(orders);
+    const groupedOrders = groupOrdersByPurchaseOrder(filteredOrders.length > 0 ? filteredOrders : orders);
 
     const markOrderAsCompleted = (orderID) => {
         setOrders((prevOrders) =>
@@ -114,18 +91,33 @@ const Suppliers = () => {
     const handleAddSupplier = (nSupplier) => {
         setSuppliers([...suppliers, { supplierID: suppliers.length + 1, ...nSupplier }]);
         setNewSupplier([...newSupplier]);
-        console.log('new suppliers:-',newSupplier);
-        console.log('suppliers:-',suppliers);
+        // console.log('new suppliers:-',newSupplier);
+        // console.log('suppliers:-',suppliers);
 
         setIsAddSupplierOpen(false);
     };
 
 
+    useEffect(() => {
+        const storedOrders = localStorage.getItem('orders');
+        if (storedOrders) {
+            const parsedOrders = JSON.parse(storedOrders);
+            setOrders(parsedOrders);
+            setFilteredOrders(parsedOrders);
+        }
+
+    }, []);
+
+    const handleFilter = (filteredData) => {
+        setFilteredOrders(filteredData);
+        // console.log('filteredData:-', filteredData);
+    };
+
     return (
         <div className="flex">
             <Sidebar />
             <div className="flex-1 w-screen h-auto bg-gray-100">
-                <Searchbar />
+                <Searchbar data={orders} onFilter={handleFilter} />
                 {profile && profile.name ? (
                     <div className='flex-col h-auto w-auto'>
                         <h1 className="w-auto text-4xl font-bold pl-10 pt-5 pb-5 text-gray-700 text-center">Purchase Orders</h1>
@@ -134,7 +126,7 @@ const Suppliers = () => {
                             <div className='w-auto flex flex-row items-center'>
                                 <h1 className="text-3xl font-semibold mb-10">Suppliers List</h1>
                                 <button
-                                    onClick={()=>setIsAddSupplierOpen(true)}
+                                    onClick={() => setIsAddSupplierOpen(true)}
                                     className="btn btn-md border-none mb-6 bg-orange-500 text-white py-2 px-4 rounded font-bold ml-auto mr-4"
                                 >
                                     Add Supplier <UserPlus className='m-auto' />
@@ -148,75 +140,86 @@ const Suppliers = () => {
                             </div>
 
                             <div className="">
-                                {dummySuppliers.map((supplier) => (
-                                    <div key={supplier.supplierID} className="mb-6 bg-white p-6 rounded-lg shadow-lg">
-                                        <div
-                                            onClick={() => toggleSupplier(supplier.supplierID)}
-                                            className="cursor-pointer text-xl font-semibold text-gray-700 flex items-center"
-                                        >
-                                            <span>{supplier.supplierName} </span>
-                                            <Menu className='ml-2' />
-                                        </div>
+                                {suppliers.map((supplier) => {
+                                    // Check if this supplier has any orders in filteredOrders
+                                    const supplierHasFilteredOrders = filteredOrders.some(order => order.supplierID === supplier.supplierID);
 
-                                        {expandedSuppliers[supplier.supplierID] && (
-                                            <div className="mt-4 space-y-4">
-                                                {Object.keys(groupedOrders).map((orderID) => {
-                                                    const ordersForThisGroup = groupedOrders[orderID];
-                                                    const isForThisSupplier = ordersForThisGroup.some(order => order.supplierID === supplier.supplierID);
+                                    // Only display the supplier and their orders if they have matching orders in filteredOrders
+                                    if (filteredOrders.length > 0 && !supplierHasFilteredOrders) {
+                                        return null; // Skip rendering this supplier if no orders are filtered for them
+                                    }
 
-                                                    if (isForThisSupplier) {
-                                                        return (
-                                                            <div key={orderID} className="border p-4 rounded-lg bg-gray-50 shadow-sm">
-                                                                <div
-                                                                    onClick={() => toggleOrder(orderID)}
-                                                                    className="cursor-pointer text-lg font-semibold text-gray-600 flex items-center"
-                                                                >
-                                                                    Order ID: {orderID} (Status: {ordersForThisGroup[0].orderStatus ? <span className='text-green-500'>Completed</span> : <span className='text-red-500'>Pending</span>})
-                                                                    <span>{!expandedOrders[orderID] ? <ArrowBigDownDashIcon className='ml-5' /> : <ArrowBigUpDashIcon className='ml-5' />}</span>
-
-                                                                    <button
-                                                                        onClick={() => markOrderAsCompleted(parseInt(orderID))}
-                                                                        className="bg-green-500 text-white py-1 px-2 rounded font-bold flex items-center ml-auto"
-                                                                    >
-                                                                        Order Received <CheckSquare className='ml-1' />
-                                                                    </button>
-
-                                                                </div>
-
-                                                                {expandedOrders[orderID] && (
-                                                                    <div className="mt-2">
-                                                                        <table className="w-full border-collapse bg-white">
-                                                                            <thead>
-                                                                                <tr className="border-b-2 border-gray-200 bg-gray-100">
-                                                                                    <th className="p-2 text-left font-semibold">Product Name</th>
-                                                                                    <th className="p-2 text-left font-semibold">Quantity</th>
-                                                                                    <th className="p-2 text-left font-semibold">Order Date</th>
-                                                                                    <th className="p-2 text-left font-semibold">Delivery Date</th>
-                                                                                    <th className="p-2 text-left font-semibold">Status</th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            <tbody>
-                                                                                {ordersForThisGroup.map((order, index) => (
-                                                                                    <tr key={index} className="border-b border-gray-200">
-                                                                                        <td className="p-2 text-gray-700">{order.productName}</td>
-                                                                                        <td className="p-2 text-gray-700">{order.quantity}</td>
-                                                                                        <td className="p-2 text-gray-700">{order.orderDate}</td>
-                                                                                        <td className="p-2 text-gray-700">{order.deliveryDate}</td>
-                                                                                        <td className="p-2 text-gray-700">{order.orderStatus ? "Completed" : "Pending"}</td>
-                                                                                    </tr>
-                                                                                ))}
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    }
-                                                })}
+                                    return (
+                                        <div key={supplier.supplierID} className="mb-6 bg-white p-6 rounded-lg shadow-lg">
+                                            <div
+                                                onClick={() => toggleSupplier(supplier.supplierID)}
+                                                className="cursor-pointer text-xl font-semibold text-gray-700 flex items-center"
+                                            >
+                                                <span>{supplier.supplierName} </span>
+                                                <Menu className='ml-2' />
                                             </div>
-                                        )}
-                                    </div>
-                                ))}
+
+                                            {expandedSuppliers[supplier.supplierID] && (
+                                                <div className="mt-4 space-y-4">
+                                                    {Object.keys(groupedOrders).map((orderID) => {
+                                                        const ordersForThisGroup = groupedOrders[orderID];
+                                                        const isForThisSupplier = ordersForThisGroup.some(order => order.supplierID === supplier.supplierID);
+
+                                                        if (isForThisSupplier) {
+                                                            return (
+                                                                <div key={orderID} className="border p-4 rounded-lg bg-gray-50 shadow-sm">
+                                                                    <div
+                                                                        onClick={() => toggleOrder(orderID)}
+                                                                        className="cursor-pointer text-lg font-semibold text-gray-600 flex items-center"
+                                                                    >
+                                                                        Order ID: {orderID} (Status: {ordersForThisGroup[0].orderStatus ? <span className='text-green-500'>Completed</span> : <span className='text-red-500'>Pending</span>})
+                                                                        <span>{!expandedOrders[orderID] ? <ArrowBigDownDashIcon className='ml-5' /> : <ArrowBigUpDashIcon className='ml-5' />}</span>
+
+                                                                        <button
+                                                                            onClick={() => markOrderAsCompleted(parseInt(orderID))}
+                                                                            className="bg-green-500 text-white py-1 px-2 rounded font-bold flex items-center ml-auto"
+                                                                        >
+                                                                            Order Received <CheckSquare className='ml-1' />
+                                                                        </button>
+
+                                                                    </div>
+
+                                                                    {expandedOrders[orderID] && (
+                                                                        <div className="mt-2">
+                                                                            <table className="w-full border-collapse bg-white">
+                                                                                <thead>
+                                                                                    <tr className="border-b-2 border-gray-200 bg-gray-100">
+                                                                                        <th className="p-2 text-left font-semibold">Product Name</th>
+                                                                                        <th className="p-2 text-left font-semibold">Quantity</th>
+                                                                                        <th className="p-2 text-left font-semibold">Order Date</th>
+                                                                                        <th className="p-2 text-left font-semibold">Delivery Date</th>
+                                                                                        <th className="p-2 text-left font-semibold">Status</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    {ordersForThisGroup.map((order, index) => (
+                                                                                        <tr key={index} className="border-b border-gray-200">
+                                                                                            <td className="p-2 text-gray-700">{order.productName}</td>
+                                                                                            <td className="p-2 text-gray-700">{order.quantity}</td>
+                                                                                            <td className="p-2 text-gray-700">{order.orderDate}</td>
+                                                                                            <td className="p-2 text-gray-700">{order.deliveryDate}</td>
+                                                                                            <td className="p-2 text-gray-700">{order.orderStatus ? "Completed" : "Pending"}</td>
+                                                                                        </tr>
+                                                                                    ))}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+
                             </div>
                         </div>
                     </div>

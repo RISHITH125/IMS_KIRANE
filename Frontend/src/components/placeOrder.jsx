@@ -131,7 +131,10 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
     // Disable "Add Another Product" button if fields are not filled
     const isAddProductDisabled = () => {
         const currentProduct = formData[currentProductIndex];
+        if(!formData[currentProductIndex].isNewProduct)
         return !(currentProduct.productID && currentProduct.quantity && currentProduct.supplierID);
+        else
+        return !(currentProduct.productName && currentProduct.quantity && currentProduct.supplierID && currentProduct.price && currentProduct.categoryName && currentProduct.reorderLevel);
     };
 
     return (
