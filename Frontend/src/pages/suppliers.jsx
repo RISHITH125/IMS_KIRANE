@@ -118,7 +118,7 @@ const Suppliers = () => {
             <Sidebar />
             <div className="flex-1 w-screen h-auto bg-gray-100">
                 <Searchbar data={orders} onFilter={handleFilter} />
-                {profile && profile.name ? (
+                {profile ? (
                     <div className='flex-col h-auto w-auto'>
                         <h1 className="w-auto text-4xl font-bold pl-10 pt-5 pb-5 text-gray-700 text-center">Purchase Orders</h1>
                         <hr className="b-2 bg-gray-900 w-full" />

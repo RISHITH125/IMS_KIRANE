@@ -125,7 +125,7 @@ const Categories = () => {
       <Sidebar />
       <div className="flex-1 w-screen h-auto bg-gray-100">
         <Searchbar data={productsData} onFilter={handleFilter} />
-        {profile && profile.name ? (
+        {profile ? (
           <div className='felx-col h-auto w-auto'>
             <h1 className='w-auto text-4xl font-bold pl-10 pt-5 pb-5 text-gray-700 text-center'>Products</h1>
             <hr className='b-2 bg-gray-900 w-full'></hr>

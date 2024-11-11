@@ -73,13 +73,13 @@ module.exports = {
             if (rows.length === 0) {
                 // Insert new user if they don't exist
                 await genpool.query(`
-                    INSERT INTO user (username, email, passwordhash, dateCreated) 
+                    INSERT INTO user (username, email, passwordhash, created_at) 
                     VALUES (?, ?, SHA2(?, 256), CURDATE());
                 `, [username, email, password]);
     
                 return {
                     success: true,
-                    message: "User registered successfully!"
+                    message: "User_reg_success"
                 };
             } else {
                 return {
@@ -100,38 +100,46 @@ module.exports = {
     // this is for the auth page
     googleAuth: async function (genpool, username, email, jti) {
         try {
+            await genpool.query(`USE store;`);
             // Check if the user with Google Auth exists
-            const [rows] = await genpool.query(`
-                SELECT storename FROM user WHERE username = ? AND email = ? AND jti = ?
-            `, [username, email, jti]);
+            const [rows] = await genpool.query(
+                `
+                SELECT storename 
+                FROM user 
+                WHERE username = ? AND email = ? AND jti = ?;
+                `, 
+                [username, email, jti]
+            );
     
             if (rows.length === 0) {
                 // Insert new user if they don't exist
-                await genpool.query(`
-                    INSERT INTO user (username, email, jti, dateCreated) 
+                await genpool.query(
+                    `
+                    INSERT INTO user (username, email, jti, created_at) 
                     VALUES (?, ?, ?, CURDATE());
-                `, [username, email, jti]);
+                    `, 
+                    [username, email, jti]
+                );
     
-                return {
-                    success: true,
-                    message: "New user registered with Google Auth!"
+                return { 
+                    success: true, 
+                    message: "New_User_Created" 
                 };
             } else {
-                return {
-                    success: true,
-                    message: "Account exists"
+                return { 
+                    success: true, 
+                    message: "Account_exists" 
                 };
             }
         } catch (err) {
             console.error("Couldn't add or verify details:", err);
-            return {
-                success: false,
-                message: "Database error",
-                error: err
+            return { 
+                success: false, 
+                message: "Database error occurred. Please try again." 
             };
         }
-    },    
-
+    },
+    
     checkStore: async function(genpool, storename) {
         try {
             const [databases] = await genpool.query(`SHOW DATABASES;`);

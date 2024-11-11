@@ -17,7 +17,7 @@ const Dashboard = () => {
   // console.log(profile);
 
   // Extract the username from the profile, if available
-  const username = profile?.name;
+  const username = profile?.name ||profile?.username;
 
   return (
     <div className="flex">
