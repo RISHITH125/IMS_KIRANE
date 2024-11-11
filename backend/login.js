@@ -1,11 +1,10 @@
 // updated category description to contain null values 04/11/2024
 
-const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const mysql = require('mysql2');
 
-async function hashPassword(plainPassword) {
-    const saltRounds = 10; // Adjust salt rounds for security
-    return await bcrypt.hash(plainPassword, saltRounds);
+function hashPassword(plainPassword) {
+    return crypto.createHash('sha256').update(plainPassword).digest('hex');
 }
 
 module.exports = {
@@ -25,11 +24,19 @@ module.exports = {
     // this is for /login api
     loginPage: async function (genpool, email, password) {
         try {
+
+            console.log(email, password)
             await genpool.query(`USE store;`);
+
+
+            const passwordhash = hashPassword(password);
+
+            // Check if passwordhash is valid before using it in the query
+            console.log(passwordhash)
     
             const [rows] = await genpool.query(
-                `SELECT storename FROM user WHERE email = ? AND password = ?`,
-                [email, password]
+                `SELECT storename, username FROM user WHERE email = ? AND passwordhash = ?`,
+                [email, passwordhash]
             );
     
             if (rows.length === 0) {
@@ -40,7 +47,7 @@ module.exports = {
             } else {
                 return {
                     success: true,
-                    data: rows[0] // Assuming you want the first matching row
+                    data: rows // Assuming you want the first matching row
                 };
             }
         } catch (err) {
@@ -52,8 +59,6 @@ module.exports = {
             };
         }
     },    
-
-    
 
     // this is for signup endpoint
     signUpPage: async function (genpool, username, email, password) {
@@ -68,9 +73,9 @@ module.exports = {
             if (rows.length === 0) {
                 // Insert new user if they don't exist
                 await genpool.query(`
-                    INSERT INTO user (username,passwordhash, email, jti, dateCreated) 
-                    VALUES (?, SHA2(?, 256), ?, CURDATE());
-                `, [username, password, email, null]);
+                    INSERT INTO user (username, email, passwordhash, dateCreated) 
+                    VALUES (?, ?, SHA2(?, 256), CURDATE());
+                `, [username, email, password]);
     
                 return {
                     success: true,
@@ -91,7 +96,6 @@ module.exports = {
             };
         }
     },
-    
 
     // this is for the auth page
     googleAuth: async function (genpool, username, email, jti) {
@@ -104,9 +108,9 @@ module.exports = {
             if (rows.length === 0) {
                 // Insert new user if they don't exist
                 await genpool.query(`
-                    INSERT INTO user (username,passwordhash,email, jti, dateCreated) 
-                    VALUES (?, ?, ?, ?, CURDATE());
-                `, [username, null, email, jti]);
+                    INSERT INTO user (username, email, jti, dateCreated) 
+                    VALUES (?, ?, ?, CURDATE());
+                `, [username, email, jti]);
     
                 return {
                     success: true,
@@ -128,7 +132,24 @@ module.exports = {
         }
     },    
 
-    createStoreDatabase: async function(genpool, storename) {
+    checkStore: async function(genpool, storename) {
+        try {
+            const [databases] = await genpool.query(`SHOW DATABASES;`);
+            const databaseExists = databases.some(db => db.Database === storename);
+
+            return databaseExists 
+            ? { success: true, message: 'Database exists' }
+            : { success: false, message: 'Database not found' };
+        } catch (err) {
+            console.error("Database access error:", err);
+            return {
+                success: false,
+                message: err
+            };
+        }
+    },
+
+    createStoreDatabase: async function(genpool, storename, username) {
         try {
             // Create the database dynamically
             await genpool.query(`CREATE DATABASE IF NOT EXISTS \`${storename}\`;`);
@@ -137,7 +158,7 @@ module.exports = {
                 host: process.env.DB_HOST,
                 user: process.env.DB_USER,
                 password: process.env.DB_PASSWORD,
-                database: process.env.DB_NAME, // Now use the new database
+                database: storename, // Now use the new database
             }).promise();
     
 

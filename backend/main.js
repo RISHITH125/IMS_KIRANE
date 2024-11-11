@@ -2,8 +2,9 @@ const express = require('express');
 require('dotenv').config();
 // const mysql = require('mysql2');
 const mysql = require('mysql2/promise');
+const cors = require('cors');
 
-const { createStoreDatabase, loginPage, signUpPage, googleAuth } = require('./login.js')
+const { createStoreDatabase, loginPage, signUpPage, googleAuth, checkStore } = require('./login.js')
 const {dispSupplier} = require('./supplierDisp.js') 
 const { purchaseDisp } = require('./purchaseDisp.js')
 const { prodCatDisp } = require('./prodCatDisp.js')
@@ -14,7 +15,7 @@ const app = express();
 const port = 3000;
 
 // Set up the MySQL connection pool
-const genpool = mysql.createPool({
+let genpool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -24,15 +25,10 @@ const genpool = mysql.createPool({
 // const pool = createStoreDatabase(genpool, 'lkjhg')
 
 (async () => {
-    const storename = 'something'
-
-    // const pool = await createStoreDatabase(genpool, 'lkjhg');
-
-    // Ensure that `pool` is defined before setting up routes
-    // if (!pool) {
-    //     console.error('Failed to create store database.');
-    //     return;
-    // }
+    // app.use(cors({ origin: 'http://localhost:5173' }));
+    // Middleware to parse JSON bodies
+    app.use(express.json());
+    app.use(cors());
 
     app.post('/login', async (req, res) => {
         try {
@@ -41,9 +37,27 @@ const genpool = mysql.createPool({
             // Call a login function to authenticate the user
             const result = await loginPage(genpool, email, password); // Assumes you have a `loginUser` function
     
-            if (result.success) {
-                storename = result.data
-                res.status(200).json({ message: result.data });
+            if (result.success) {  // Check that data is not empty
+                const { storename, username: username } = result.data[0]; // Destructure storename and name from the first object in the array
+                console.log(storename, username);  // Log both values to confirm      
+
+                const storeResult = await checkStore(genpool, storename);
+                console.log(storeResult)
+
+                if(!storeResult.success) {
+                    genpool = await createStoreDatabase(genpool, storename, username)
+                    console.log('message: ', result.message)
+                } else {
+                    genpool = mysql.createPool({
+                        host: process.env.DB_HOST,
+                        user: process.env.DB_USER,
+                        password: process.env.DB_PASSWORD,
+                        database: storename, // Now use the new database
+                    });
+                }
+            
+                // Respond to the client with a success message and relevant data
+                res.status(200).json({ message: true, data: { username, storename } });
             } else {
                 res.status(404).json({ message: result.message });
             }
@@ -54,10 +68,10 @@ const genpool = mysql.createPool({
         }
     });    
 
-    app.post('/signup', async (res, req) => {
+    app.post('/signup', async (req,res) => {
         try {
             const { username, email, password } = req.body;
-
+            console.log(req.body)
             const result = await signUpPage(genpool, username, email, password)
             if(result.success) {
                 res.status(200).json({ message: result.message })
@@ -68,9 +82,9 @@ const genpool = mysql.createPool({
             console.error('Error occcured while signup checking...', err)
             res.status(500).send('Error checking signup credentials')
         }
-    })
+    });
 
-    app.post('/auth', async (res, req) => {
+    app.post('/auth', async (req,res) => {
         try {
             const { username, email, jti } = req.body
 
@@ -87,77 +101,78 @@ const genpool = mysql.createPool({
     })
 
     // Route to fetch all product data
-    app.get('/products', async (req, res) => {
+    app.get('/:storename/products', async (req, res) => {
+        const { storename } = req.params;
+        console.log('Store name:', storename); // Log the storename from the request
         try {
-            // Query to get all products
-            const [rows] = await pool.query('SELECT * FROM product');
-            // Directly send rows which contain key-value pairs for each column
-            res.json(rows);
+            const rows = await prodCatDisp(genpool, storename); // Pass storename to the query
+            console.log('Query result:', rows); // Log the query results
+    
+            if (rows && rows.length > 0) {
+                res.json({
+                    result: true,
+                    message: rows // Rows are already in the desired JSON format
+                });
+            } else {
+                res.json({
+                    result: true,
+                    message: 'No products found for this store'
+                });
+            }
         } catch (error) {
             console.error('Error fetching product data:', error);
-            res.status(500).send('Error fetching product data');
+            res.status(500).json({
+                result: false,
+                message: 'Error fetching product data'
+            });
         }
     });
-
+    
     // Start the Express server (assuming `app` is already defined)
     // const port = process.env.PORT || 3000;
     // Function to generate an HTML table
-    function generateHtmlTable(rows, title = "Data Table") {
-        if (rows.length === 0) return `<h1>No Data Available</h1>`;
+    // function generateHtmlTable(rows, title = "Data Table") {
+    //     if (rows.length === 0) return `<h1>No Data Available</h1>`;
     
-        return `
-            <html>
-                <head>
-                    <title>${title}</title>
-                    <style>
-                        table { width: 100%; border-collapse: collapse; }
-                        th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
-                        th { background-color: #f2f2f2; }
-                    </style>
-                </head>
-                <body>
-                    <h1>${title}</h1>
-                    <table>
-                        <tr>${Object.keys(rows[0]).map(key => `<th>${key}</th>`).join('')}</tr>
-                        ${rows.map(row => `
-                            <tr>${Object.values(row).map(value => `<td>${value}</td>`).join('')}</tr>
-                        `).join('')}
-                    </table>
-                </body>
-            </html>
-        `;
-    }
-    
-    // Route to fetch all product data
-    app.get('/products', async (req, res) => {
-        try {
-            // Query to get all products
-            const [rows] = await pool.query('SELECT * FROM product');
-    
-            // Directly send rows which contain key-value pairs for each column
-            res.json(rows);
-        } catch (error) {
-            console.error('Error fetching product data:', error);
-            res.status(500).send('Error fetching product data');
-        }
-    });
+    //     return `
+    //         <html>
+    //             <head>
+    //                 <title>${title}</title>
+    //                 <style>
+    //                     table { width: 100%; border-collapse: collapse; }
+    //                     th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+    //                     th { background-color: #f2f2f2; }
+    //                 </style>
+    //             </head>
+    //             <body>
+    //                 <h1>${title}</h1>
+    //                 <table>
+    //                     <tr>${Object.keys(rows[0]).map(key => `<th>${key}</th>`).join('')}</tr>
+    //                     ${rows.map(row => `
+    //                         <tr>${Object.values(row).map(value => `<td>${value}</td>`).join('')}</tr>
+    //                     `).join('')}
+    //                 </table>
+    //             </body>
+    //         </html>
+    //     `;
+    // }
     
     // Route to display JSON data in a table format
-    app.get('/products/table', async (req, res) => {
-        try {
-            // Query to get all products
-            const [rows] = await pool.query('SELECT * FROM product');
+    // app.get('/products/table', async (req, res) => {
+    //     try {
+    //         // Query to get all products
+    //         const [rows] = await pool.query('SELECT * FROM product');
     
-            // Generate HTML table dynamically from rows with key-value pairs
-            const html = generateHtmlTable(rows, "Product Information")
+    //         // Generate HTML table dynamically from rows with key-value pairs
+    //         const html = generateHtmlTable(rows, "Product Information")
     
-            // Send the HTML response
-            res.send(html);
-        } catch (error) {
-            console.error('Error fetching product data:', error);
-            res.status(500).send('Error fetching product data');
-        }
-    });
+    //         // Send the HTML response
+    //         res.send(html);
+    //     } catch (error) {
+    //         console.error('Error fetching product data:', error);
+    //         res.status(500).send('Error fetching product data');
+    //     }
+    // });
     
     // Route to add Product details into table
     app.post('/addProduct', async (req, res) => {
