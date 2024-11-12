@@ -143,12 +143,6 @@ module.exports = {
             };
         }
     },
-
-    addStore: async function (genpool, username, email, password, fullname, phno, storename) {
-        // try {
-        //     await genpool.query()
-        // }
-    },
     
     checkStore: async function(genpool, storename) {
         try {
@@ -300,7 +294,7 @@ module.exports = {
         try {
             let hashedPassword;
             if(hasNumber(password)) {
-                hashedPassword = await hashPassword(password);
+                hashedPassword = hashPassword(password);
             } else {
                 hashedPassword = password
             }
