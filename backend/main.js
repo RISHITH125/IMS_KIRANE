@@ -38,7 +38,7 @@ let genpool = mysql.createPool({
 
       // Call a login function to authenticate the user
       const result = await loginPage(genpool, email, password);
-
+      console.log("Result:", result); // Log the result to check
       if (result.success) {
         // Check that data is not empty
         const { storename, username: username } = result.data[0]; // Destructure storename and name from the first object in the array
@@ -96,6 +96,8 @@ let genpool = mysql.createPool({
     try {
       // just check if password is hashed or not
       const { username, email, password, fullname, phno, storename } = req.body
+      await genpool.query(`
+        UPDATE user SET storename = ? WHERE email = ?`, [storename, email])
       console.log(username, email, password, fullname, phno, storename)
       genpool = await createStoreDatabase(genpool, storename, username)
       const result = await loginCreate(genpool, fullname, password, storename, username, email, phno)
