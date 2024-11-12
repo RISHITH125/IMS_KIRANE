@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Search, Bell, User, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
+import { useUser } from '../context/UserContext';
 const Searchbar = ({ data, onFilter }) => {
+    const {profile , setProfile} = useUser();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [isFiltered, setIsFiltered] = useState(false);
 
@@ -59,7 +61,7 @@ const Searchbar = ({ data, onFilter }) => {
                 </Link>
 
                 {/* Profile Icon */}
-                <Link to="/profile" className="flex items-center">
+                <Link to={`/${profile?.storename || 'default'}/profile`} className="flex items-center">
                     <div className="w-10 h-10 rounded-full border-gray-500 border-2 bg-white flex items-center justify-center overflow-hidden">
                         <User className="text-gray-500 w-6 h-6" />
                     </div>
