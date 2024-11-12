@@ -19,14 +19,18 @@ const Authentication = () => {
     confirmPassword: '', // For signup only
   });
 
-  const [newDetailm, setNewDetail] = useState({
-    username: '',
-    email: '',
-    password: '',
-    storename: '',
-    fullName: '',
-    phoneNumber: '',
-  });
+  const [googleresp, setGoogleResp] = useState({})
+
+
+
+  // const [newDetailm, setNewDetail] = useState({
+  //   username: '',
+  //   email: '',
+  //   password: '',
+  //   storename: '',
+  //   fullName: '',
+  //   phoneNumber: '',
+  // });
 
 
   const [error, setError] = useState(''); // For displaying errors
@@ -89,6 +93,7 @@ const Authentication = () => {
           if (data.message === true) {
             setProfile(data.data); // Assuming the backend sends user profile data
             localStorage.setItem('userProfile', JSON.stringify(data.data));
+            console.log('Login success:', data.data);
             navigate('/dashboard');
           } else {
             setError('Invalid credentials, please try again.');
@@ -99,11 +104,18 @@ const Authentication = () => {
         }
       }
     } else {
+      const pass=googleresp ? googleresp.sub : formData.password
       const newDetail = {
         fullName: formData.fullName,
         phoneNumber: formData.phoneNumber,
         storename: formData.storename,
+        username: formData.username,
+        email:formData.email,
+        password:pass,
+        storename:formData.storename,
       };
+      console.log(newDetail)
+
       try {
         const response = await fetch('http://localhost:3000/addStore', {
           method: 'POST',
@@ -127,6 +139,7 @@ const Authentication = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     const credentialResponseDecoded = jwtDecode(credentialResponse.credential);
+    setGoogleResp(credentialResponseDecoded.data);
     console.log('Google Login Success:', credentialResponseDecoded);
 
     // Send token to the backend for verification
