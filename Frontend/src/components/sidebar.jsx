@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import "../App.css";
 import { FiHome, FiBox, FiShoppingCart, FiSettings, FiChevronRight, FiChevronLeft } from 'react-icons/fi';
 import { useState } from 'react';
-
+import { useUser } from '../context/UserContext';
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const {profile , setProfile} = useUser();
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
@@ -24,15 +24,15 @@ const Sidebar = () => {
 
       {/* Navigation Links */}
       <nav className={`mt-10 ${sidebarOpen ? '' : 'flex flex-col items-center'}`}>
-        <Link to="/dashboard" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+        <Link to={`/${profile?.storename || 'default'}/dashboard`} className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
           <FiHome className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Dashboard"}
         </Link>
-        <Link to="/products" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+        <Link to={`/${profile?.storename || 'default'}/products`} className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
           <FiBox className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Products"}
         </Link>
-        <Link to="/suppliers" className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
+        <Link to={`/${profile?.storename || 'default'}/suppliers`} className={`flex items-center ${sidebarOpen ? 'py-2.5 px-4 mb-4' : 'justify-center p-2 mb-4'} rounded hover:bg-gray-700 hover:scale-105 transition-transform duration-100`}>
           <FiShoppingCart className={sidebarOpen ? "mr-3" : ""} size={sidebarOpen ? 20 : 24} />
           {sidebarOpen && "Orders"}
         </Link>
