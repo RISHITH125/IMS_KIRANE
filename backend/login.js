@@ -7,6 +7,10 @@ function hashPassword(plainPassword) {
     return crypto.createHash('sha256').update(plainPassword).digest('hex');
 }
 
+function hasNumber(password) {
+    return /\d/.test(password);  // \d matches any digit (0-9)
+}
+
 module.exports = {
     fetchData: async function(pool) {
         try {
@@ -26,7 +30,7 @@ module.exports = {
         try {
 
             console.log(email, password)
-            await genpool.query(`USE store;`);
+            // await genpool.query(`USE store;`);
 
 
             const passwordhash = hashPassword(password);
@@ -42,7 +46,7 @@ module.exports = {
             if (rows.length === 0) {
                 return {
                     success: false,
-                    message: "User not found or incorrect credentials",
+                    data: "User not found or incorrect credentials",
                 };
             } else {
                 return {
@@ -63,7 +67,7 @@ module.exports = {
     // this is for signup endpoint
     signUpPage: async function (genpool, username, email, password) {
         try {
-            await genpool.query(`USE store;`);
+            // await genpool.query(`USE store;`);
             
             // Check if the user already exists
             const [rows] = await genpool.query(`
@@ -100,7 +104,7 @@ module.exports = {
     // this is for the auth page
     googleAuth: async function (genpool, username, email, jti) {
         try {
-            await genpool.query(`USE store;`);
+            // await genpool.query(`USE store;`);
             // Check if the user with Google Auth exists
             const [rows] = await genpool.query(
                 `
@@ -139,6 +143,12 @@ module.exports = {
             };
         }
     },
+
+    addStore: async function (genpool, username, email, password, fullname, phno, storename) {
+        // try {
+        //     await genpool.query()
+        // }
+    },
     
     checkStore: async function(genpool, storename) {
         try {
@@ -162,7 +172,7 @@ module.exports = {
             // Create the database dynamically
             await genpool.query(`CREATE DATABASE IF NOT EXISTS \`${storename}\`;`);
 
-            const pool = mysql.createPool({
+            let pool = mysql.createPool({
                 host: process.env.DB_HOST,
                 user: process.env.DB_USER,
                 password: process.env.DB_PASSWORD,
@@ -288,7 +298,12 @@ module.exports = {
 
     loginCreate: async function(pool, fullname, password, storename, username, email, phno) {
         try {
-            const hashedPassword = await hashPassword(password);
+            let hashedPassword;
+            if(hasNumber(password)) {
+                hashedPassword = await hashPassword(password);
+            } else {
+                hashedPassword = password
+            }
             const currentDate = new Date().toISOString().split('T')[0];
             
             const [userResult] = await pool.query(`
