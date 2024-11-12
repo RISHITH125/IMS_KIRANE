@@ -5,7 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import { useUser } from '../context/UserContext'; // Assuming you have a User context
 import { MoveRightIcon } from 'lucide-react';
 import "../App.css";
-// import { isFormElement } from 'react-router-dom/dist/dom';
+
 const Authentication = () => {
   const navigate = useNavigate();
   const { profile, setProfile } = useUser();
@@ -17,12 +17,12 @@ const Authentication = () => {
     email: '',
     password: '',
     confirmPassword: '', // For signup only
-
+    fullName: '', // For the user details form
+    phoneNumber: '', // For the user details form
+    storename: '', // For the user details form
   });
 
-  const [googleresp, setGoogleResp] = useState({})
-
-
+  const [googleresp, setGoogleResp] = useState({});
 
   const [newDetailm, setNewDetail] = useState({
     username: '',
@@ -32,7 +32,6 @@ const Authentication = () => {
     fullName: '',
     phoneNumber: '',
   });
-
 
   const [error, setError] = useState(''); // For displaying errors
 
@@ -60,13 +59,14 @@ const Authentication = () => {
           password: formData.password,
         };
 
-        setNewDetail(ele => {
+        setNewDetail((ele) => {
           return {
             ...ele,
             username: formData.username,
             email: formData.email,
             password: formData.password,
-        }})
+          };
+        });
 
         try {
           const response = await fetch('http://localhost:3000/signup', {
@@ -77,7 +77,7 @@ const Authentication = () => {
           const data = await response.json();
           if (data.message === 'User_reg_success') {
             setIsSignup(false); // Switch back to login
-            setIsFormElement(true)
+            setIsFormElement(true);
           } else {
             setError(data.message || 'Something went wrong. Please try again.');
           }
@@ -102,7 +102,6 @@ const Authentication = () => {
           if (data.message === true) {
             setProfile(data.data); // Assuming the backend sends user profile data
             localStorage.setItem('userProfile', JSON.stringify(data.data));
-            console.log('Login success:', data.data);
             navigate('/dashboard');
           } else {
             setError('Invalid credentials, please try again.');
@@ -113,17 +112,18 @@ const Authentication = () => {
         }
       }
     } else {
-      const pass=googleresp ? googleresp.sub : newDetailm.password
+      console.log(googleresp)
+      const pass = googleresp ? googleresp.sub : newDetailm.password;
+  
       const newDetail = {
-        fullname: newDetailm.fullName,
-        phno: newDetailm.phoneNumber,
+        fullname: formData.fullName,
+        phno: formData.phoneNumber,
         username: newDetailm.username,
-        email:newDetailm.email,
-        password:pass,
-        storename:newDetailm.storename,
+        email: newDetailm.email,
+        password: pass,
+        storename: formData.storename,
       };
-      console.log(newDetail)
-
+      console.log(newDetail);
       try {
         const response = await fetch('http://localhost:3000/addStore', {
           method: 'POST',
@@ -142,15 +142,13 @@ const Authentication = () => {
         console.error('Login error:', error);
         setError('Login failed. Please try again later.');
       }
-    };
-  }
+    }
+  };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     const credentialResponseDecoded = jwtDecode(credentialResponse.credential);
-    setGoogleResp(credentialResponseDecoded.data);
-    console.log('Google Login Success:', credentialResponseDecoded);
-
-    // Send token to the backend for verification
+    setGoogleResp(credentialResponseDecoded);
+    console.log(credentialResponseDecoded);
     try {
       const response = await fetch('http://localhost:3000/auth', {
         method: 'POST',
@@ -158,22 +156,16 @@ const Authentication = () => {
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
       const data = await response.json();
-      console.log('Google Auth Response:', data);
 
       if (data.message === 'Account_exists') {
-        // User exists, proceed to the dashboard
         setProfile(credentialResponseDecoded);
         localStorage.setItem('userProfile', JSON.stringify(credentialResponseDecoded));
         navigate('/dashboard');
-      }
-      else if (data.message === 'New_User_Created') {
-        // New user created, navigate to user form to accept details
+      } else if (data.message === 'New_User_Created') {
         setProfile(credentialResponseDecoded);
         setIsFormElement(true);
-        localStorage.setItem('userProfile', JSON.stringify(credentialResponseDecoded)); // Navigate to the userForm page for new user details
-      }
-      else {
-        // Handle any unexpected responses or errors
+        localStorage.setItem('userProfile', JSON.stringify(credentialResponseDecoded));
+      } else {
         setError('Google login failed.');
       }
     } catch (error) {
@@ -190,10 +182,9 @@ const Authentication = () => {
   const logOut = () => {
     googleLogout();
     setProfile(null);
-    localStorage.removeItem('userProfile'); // Clear local storage
-    navigate('/login'); // Redirect to login page
+    localStorage.removeItem('userProfile');
+    navigate('/login');
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200">
       {!isform ?
