@@ -98,8 +98,12 @@ let genpool = mysql.createPool({
       const { username, email, password, fullname, phno, storename } = req.body
       console.log(username, email, password, fullname, phno, storename)
       genpool = await createStoreDatabase(genpool, storename, username)
-      await loginCreate(genpool, fullname, password, storename, username, email, phno)
-
+      const result = await loginCreate(genpool, fullname, password, storename, username, email, phno)
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(404).json(result);
+      }
     } catch (err) {
       console.error('Error in receiving the details from the signup or google auth page or database is inaccessible..\n', err)
     }

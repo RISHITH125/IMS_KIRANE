@@ -63,6 +63,7 @@ const Authentication = () => {
           return {
             ...ele,
             username: formData.username,
+            fullName: formData.fullName,
             email: formData.email,
             password: formData.password,
           };
@@ -113,16 +114,15 @@ const Authentication = () => {
       }
     } else {
       console.log(googleresp)
-      const pass = googleresp ? googleresp.sub : newDetailm.password;
-  
       const newDetail = {
-        fullname: formData.fullName,
+        fullname: googleresp?.name||formData.fullName,
         phno: formData.phoneNumber,
-        username: newDetailm.username,
-        email: newDetailm.email,
-        password: pass,
+        username: googleresp?.name || newDetailm.username,
+        email: googleresp?.email || newDetailm.email,
+        password: googleresp?.sub || newDetailm.password,
         storename: formData.storename,
       };
+  
       console.log(newDetail);
       try {
         const response = await fetch('http://localhost:3000/addStore', {
@@ -131,9 +131,10 @@ const Authentication = () => {
           body: JSON.stringify(newDetail),
         });
         const data = await response.json();
-        if (data.message === 'User_details_saved') {
-          setProfile(data.data); // Assuming the backend sends user profile data
-          localStorage.setItem('userProfile', JSON.stringify(data.data));
+        console.log(data);
+        if (data.success) {
+          setProfile(newDetail);
+          localStorage.setItem('userProfile', JSON.stringify(newDetail));
           navigate('/dashboard');
         } else {
           setError('Invalid credentials, please try again.');
