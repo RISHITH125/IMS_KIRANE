@@ -192,7 +192,7 @@ module.exports = {
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS user_phno (
                     userid INT,
-                    phno VARCHAR(10) CHECK(LENGTH(phno) = 10) NOT NULL,
+                    phno VARCHAR(10) NOT NULL,
                     FOREIGN KEY (userid) REFERENCES user(userid)
                 );
             `);
@@ -218,7 +218,7 @@ module.exports = {
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS supplier_phno (
                     supplierID INT,
-                    phno VARCHAR(10) CHECK(LENGTH(phno) = 10) NOT NULL,  -- Assuming phone numbers are 10 digits
+                    phno VARCHAR(10) NOT NULL,  -- Assuming phone numbers are 10 digits
                     FOREIGN KEY (supplierID) REFERENCES supplier(supplierID)
                 );
             `);
