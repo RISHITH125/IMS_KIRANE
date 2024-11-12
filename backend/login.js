@@ -144,12 +144,6 @@ module.exports = {
         }
     },
 
-    addStore: async function (genpool, username, email, password, fullname, phno, storename) {
-        // try {
-        //     await genpool.query()
-        // }
-    },
-    
     checkStore: async function(genpool, storename) {
         try {
             const [databases] = await genpool.query(`SHOW DATABASES;`);
