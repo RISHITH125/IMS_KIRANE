@@ -17,6 +17,7 @@ const Authentication = () => {
     email: '',
     password: '',
     confirmPassword: '', // For signup only
+
   });
 
   const [googleresp, setGoogleResp] = useState({})
@@ -106,12 +107,12 @@ const Authentication = () => {
     } else {
       const pass=googleresp ? googleresp.sub : formData.password
       const newDetail = {
-        fullName: formData.fullName,
-        phoneNumber: formData.phoneNumber,
+        fullname: formData.fullName,
+        phno: formData.phoneNumber,
         storename: formData.storename,
         username: formData.username,
         email:formData.email,
-        password:pass,
+        password:{pass},
         storename:formData.storename,
       };
       console.log(newDetail)
