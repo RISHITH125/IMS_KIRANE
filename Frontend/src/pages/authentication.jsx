@@ -109,7 +109,6 @@ const Authentication = () => {
       const newDetail = {
         fullname: formData.fullName,
         phno: formData.phoneNumber,
-        storename: formData.storename,
         username: formData.username,
         email:formData.email,
         password:{pass},
