@@ -139,7 +139,8 @@ app.post("/auth", async (req, res) => {
     const { storename } = req.params;
     console.log("Store name:", storename); // Log the storename from the request
     try {
-      const rows = await prodCatDisp(genpool, storename); // Pass storename to the query
+      // const rows = await prodCatDisp(genpool, storename); // Pass storename to the query
+      const rows = await prodCatDisp(genpool); // Pass storename to the query
       console.log("Query result:", rows); // Log the query results
 
       if (rows && rows.length > 0) {
