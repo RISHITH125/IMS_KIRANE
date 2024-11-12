@@ -32,7 +32,6 @@ module.exports = {
             console.log(email, password)
             // await genpool.query(`USE store;`);
 
-
             const passwordhash = hashPassword(password);
 
             // Check if passwordhash is valid before using it in the query
@@ -49,6 +48,11 @@ module.exports = {
                     data: "User not found or incorrect credentials",
                 };
             } else {
+
+                await genpool.query(`USE ?`, [rows[0]])
+                const [details] = await genpool.query(`SELECT u.userid,u.username,u.fullname,u.dateCreated,u.storename,up.phno,ue.email FROM user AS u LEFT JOIN user_phno AS up ON u.userid=up.userid LEFT JOIN user_email AS ue ON u.userid = ue.userid ORDER BY u.userid;`)
+
+                console.log(JSON.stringify(details));
                 return {
                     success: true,
                     data: rows // Assuming you want the first matching row
@@ -306,20 +310,13 @@ module.exports = {
 
             const userId = userResult.insertId;
 
-            // Store phone numbers
-            // for (const pn of phno) {
             await pool.query("INSERT INTO user_phno (userid, phno) VALUES (?, ?)", [userId, phno]);
-            // }
 
-            // Store emails
-            // for (const em of email) {
             await pool.query("INSERT INTO user_email (userid, email) VALUES (?, ?)", [userId, email]);
             return { 
                 success: true, 
                 message: "Store_created" 
             };
-
-            // }
         } catch (err) {
             console.error("Couldn't insert details of the user...", err);
             return { 
