@@ -4,13 +4,7 @@ require("dotenv").config();
 const mysql = require("mysql2/promise");
 const cors = require("cors");
 
-const {
-  createStoreDatabase,
-  loginPage,
-  signUpPage,
-  googleAuth,
-  checkStore,
-} = require("./login.js");
+const { createStoreDatabase, loginPage, signUpPage, googleAuth, checkStore, loginCreate } = require("./login.js");
 const { dispSupplier } = require("./supplierDisp.js");
 const { purchaseDisp } = require("./purchaseDisp.js");
 const { prodCatDisp } = require("./prodCatDisp.js");
@@ -32,8 +26,6 @@ let genpool = mysql.createPool({
   database: process.env.DB_NAME,
 });
 
-// const pool = createStoreDatabase(genpool, 'lkjhg')
-
 (async () => {
   // app.use(cors({ origin: 'http://localhost:5173' }));
   // Middleware to parse JSON bodies
@@ -45,7 +37,7 @@ let genpool = mysql.createPool({
       const { email, password } = req.body; // Using email and password fields
 
       // Call a login function to authenticate the user
-      const result = await loginPage(genpool, email, password); // Assumes you have a `loginUser` function
+      const result = await loginPage(genpool, email, password);
 
       if (result.success) {
         // Check that data is not empty
@@ -55,22 +47,27 @@ let genpool = mysql.createPool({
         const storeResult = await checkStore(genpool, storename);
         console.log(storeResult);
 
-        if (!storeResult.success) {
-          genpool = await createStoreDatabase(genpool, storename, username);
-          console.log("message: ", result.message);
-        } else {
+        // // This is done to check if the user proceeded 
+        if (storeResult.success) {
+        //   genpool = await createStoreDatabase(genpool, storename, username);
+        //   console.log("message: ", result.message);
+        // } else { // This is done to check 
           genpool = mysql.createPool({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
             database: storename, // Now use the new database
           });
+        } else {
+          res.status(404).json({message: false, data: storeResult.message})
         }
-
+        // const [rows] = await genpool.query(`
+        //   select * from product;`)
+        // console.log(rows)
         // Respond to the client with a success message and relevant data
         res.status(200).json({ message: true, data: { username, storename } });
       } else {
-        res.status(404).json({ message: result.message });
+        res.status(404).json({ message: result.data });
       }
     } catch (error) {
       console.error("Error during login:", error);
@@ -94,6 +91,20 @@ let genpool = mysql.createPool({
     }
   });
 
+  // this endpoint is only for signup and auth endpoints
+  app.post('/addStore', async (req, res) => {
+    try {
+      // just check if password is hashed or not
+      const { username, email, password, fullname, phno, storename } = req.body
+      console.log(username, email, password, fullname, phno, storename)
+      genpool = await createStoreDatabase(genpool, storename, username)
+      await loginCreate(genpool, fullname, password, storename, username, email, phno)
+
+    } catch (err) {
+      console.error('Error in receiving the details from the signup or google auth page or database is inaccessible..\n', err)
+    }
+  })
+
 
 //   ALTER TABLE user MODIFY storename VARCHAR(100) NULL;
 // dont forget to use this
@@ -116,12 +127,7 @@ app.post("/auth", async (req, res) => {
         const sub_claim = payload.sub;
 
         // Handle user authentication or creation in the database
-        const result = await googleAuth(
-            genpool,
-            payload.name,
-            payload.email,
-            sub_claim,
-        );
+        const result = await googleAuth(genpool, payload.name, payload.email, sub_claim);
 
         if (result.success) {
             res.status(200).json({ message: result.message, data: payload });
