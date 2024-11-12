@@ -24,14 +24,14 @@ const Authentication = () => {
 
 
 
-  // const [newDetailm, setNewDetail] = useState({
-  //   username: '',
-  //   email: '',
-  //   password: '',
-  //   storename: '',
-  //   fullName: '',
-  //   phoneNumber: '',
-  // });
+  const [newDetailm, setNewDetail] = useState({
+    username: '',
+    email: '',
+    password: '',
+    storename: '',
+    fullName: '',
+    phoneNumber: '',
+  });
 
 
   const [error, setError] = useState(''); // For displaying errors
@@ -59,6 +59,14 @@ const Authentication = () => {
           email: formData.email,
           password: formData.password,
         };
+
+        setNewDetail(ele => {
+          return {
+            ...ele,
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+        }})
 
         try {
           const response = await fetch('http://localhost:3000/signup', {
@@ -105,14 +113,14 @@ const Authentication = () => {
         }
       }
     } else {
-      const pass=googleresp ? googleresp.sub : formData.password
+      const pass=googleresp ? googleresp.sub : newDetailm.password
       const newDetail = {
-        fullname: formData.fullName,
-        phno: formData.phoneNumber,
-        username: formData.username,
-        email:formData.email,
-        password:{pass},
-        storename:formData.storename,
+        fullname: newDetailm.fullName,
+        phno: newDetailm.phoneNumber,
+        username: newDetailm.username,
+        email:newDetailm.email,
+        password:pass,
+        storename:newDetailm.storename,
       };
       console.log(newDetail)
 
