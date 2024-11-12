@@ -41,11 +41,11 @@ let genpool = mysql.createPool({
       console.log("Result:", result); // Log the result to check
       if (result.success) {
         // Check that data is not empty
-        const { storename, username: username } = result.data[0]; // Destructure storename and name from the first object in the array
-        console.log(storename, username); // Log both values to confirm
+        const userDet = result.data; // Destructure storename and name from the first object in the array
+        console.log(userDet.storename, userDet.username); // Log both values to confirm
 
-        const storeResult = await checkStore(genpool, storename);
-        console.log(storeResult);
+        const storeResult = await checkStore(genpool, userDet.storename);
+        // console.log(storeResult);
 
         // // This is done to check if the user proceeded 
         if (storeResult.success) {
@@ -56,7 +56,7 @@ let genpool = mysql.createPool({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
-            database: storename, // Now use the new database
+            database: userDet.storename, // Now use the new database
           });
         } else {
           res.status(404).json({message: false, data: storeResult.message})
@@ -65,7 +65,7 @@ let genpool = mysql.createPool({
         //   select * from product;`)
         // console.log(rows)
         // Respond to the client with a success message and relevant data
-        res.status(200).json({ message: true, data: { username, storename } });
+        res.status(200).json({ message: true, data: userDet });
       } else {
         res.status(404).json({ message: result.data });
       }
@@ -152,7 +152,7 @@ app.post("/auth", async (req, res) => {
     console.log("Store name:", storename); // Log the storename from the request
     try {
       // const rows = await prodCatDisp(genpool, storename); // Pass storename to the query
-      const rows = await prodCatDisp(genpool); // Pass storename to the query
+      const [rows] = await prodCatDisp(genpool); // Pass storename to the query
       console.log("Query result:", rows); // Log the query results
 
       if (rows && rows.length > 0) {

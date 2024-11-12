@@ -38,9 +38,9 @@ module.exports = {
             console.log(passwordhash)
     
             const [rows] = await genpool.query(
-                `SELECT storename, username FROM user WHERE email = ? AND passwordhash = ?`,
+               `SELECT storename, username FROM user WHERE email = ? AND passwordhash = ?`,
                 [email, passwordhash]
-            );
+            ); 
     
             if (rows.length === 0) {
                 return {
@@ -48,14 +48,14 @@ module.exports = {
                     data: "User not found or incorrect credentials",
                 };
             } else {
-
-                await genpool.query(`USE ?`, [rows[0]])
+                let tempdatabase = rows[0].storename
+                await genpool.query(`USE ${tempdatabase}`)
                 const [details] = await genpool.query(`SELECT u.userid,u.username,u.fullname,u.dateCreated,u.storename,up.phno,ue.email FROM user AS u LEFT JOIN user_phno AS up ON u.userid=up.userid LEFT JOIN user_email AS ue ON u.userid = ue.userid ORDER BY u.userid;`)
 
-                console.log(JSON.stringify(details));
+                console.log(JSON.stringify(details[0]));
                 return {
                     success: true,
-                    data: rows // Assuming you want the first matching row
+                    data: details[0] // Assuming you want the first matching row
                 };
             }
         } catch (err) {

@@ -27,7 +27,7 @@ const Authentication = () => {
     if (userProfile) {
       setProfile(JSON.parse(userProfile));
     }
-  }, []);
+  }, [profile, setProfile]);
   
 
   const [googleresp, setGoogleResp] = useState({});
@@ -112,7 +112,9 @@ const Authentication = () => {
           if (data.message === true) {
             setProfile(data.data); // Assuming the backend sends user profile data
             localStorage.setItem('userProfile', JSON.stringify(data.data));
-            navigate(`/${profile?.storename || 'default'}/dashboard`);;
+            setProfile(data.data);
+            const storename = data.data.storename;
+            navigate(`/${storename||'default'}/dashboard`);;
           } else {
             setError('Invalid credentials, please try again.');
           }
