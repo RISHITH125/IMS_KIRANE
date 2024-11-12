@@ -106,7 +106,7 @@ const Suppliers = () => {
             setFilteredOrders(parsedOrders);
         }
 
-    }, []);
+    }, [newOrder]);
 
     const handleFilter = (filteredData) => {
         setFilteredOrders(filteredData);

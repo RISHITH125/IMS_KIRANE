@@ -307,16 +307,25 @@ module.exports = {
             const userId = userResult.insertId;
 
             // Store phone numbers
-            for (const pn of phno) {
-                await pool.query("INSERT INTO user_phno (userid, phno) VALUES (?, ?)", [userId, pn]);
-            }
+            // for (const pn of phno) {
+            await pool.query("INSERT INTO user_phno (userid, phno) VALUES (?, ?)", [userId, phno]);
+            // }
 
             // Store emails
-            for (const em of email) {
-                await pool.query("INSERT INTO user_email (userid, email) VALUES (?, ?)", [userId, em]);
-            }
+            // for (const em of email) {
+            await pool.query("INSERT INTO user_email (userid, email) VALUES (?, ?)", [userId, email]);
+            return { 
+                success: true, 
+                message: "Store_created" 
+            };
+
+            // }
         } catch (err) {
             console.error("Couldn't insert details of the user...", err);
+            return { 
+                success: false, 
+                message: "Store_not_created" 
+            };
         }
     },
 

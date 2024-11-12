@@ -1,0 +1,1 @@
+SELECT u.userid,u.username,u.fullname,u.dateCreated,u.passwordhash,u.storename,up.phno,ue.email FROM user AS u LEFT JOIN user_phno AS up ON u.userid=up.userid LEFT JOIN user_email AS ue ON u.userid = ue.userid ORDER BY u.userid;

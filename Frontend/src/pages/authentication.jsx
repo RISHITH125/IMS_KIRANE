@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -21,6 +21,14 @@ const Authentication = () => {
     phoneNumber: '', // For the user details form
     storename: '', // For the user details form
   });
+
+  useEffect(() => {
+    const userProfile = localStorage.getItem('userProfile');
+    if (userProfile) {
+      setProfile(JSON.parse(userProfile));
+    }
+  }, []);
+  
 
   const [googleresp, setGoogleResp] = useState({});
 
@@ -63,6 +71,7 @@ const Authentication = () => {
           return {
             ...ele,
             username: formData.username,
+            fullName: formData.fullName,
             email: formData.email,
             password: formData.password,
           };
@@ -99,10 +108,11 @@ const Authentication = () => {
             body: JSON.stringify(loginData),
           });
           const data = await response.json();
+          console.log(data);
           if (data.message === true) {
             setProfile(data.data); // Assuming the backend sends user profile data
             localStorage.setItem('userProfile', JSON.stringify(data.data));
-            navigate('/dashboard');
+            navigate(`/${profile?.storename || 'default'}/dashboard`);;
           } else {
             setError('Invalid credentials, please try again.');
           }
@@ -112,18 +122,17 @@ const Authentication = () => {
         }
       }
     } else {
-      console.log(googleresp)
-      const pass = googleresp ? googleresp.sub : newDetailm.password;
-  
+      // console.log(googleresp)
       const newDetail = {
-        fullname: formData.fullName,
+        fullname: googleresp?.name||formData.fullName,
         phno: formData.phoneNumber,
-        username: newDetailm.username,
-        email: newDetailm.email,
-        password: pass,
+        username: googleresp?.name || newDetailm.username,
+        email: googleresp?.email || newDetailm.email,
+        password: googleresp?.sub || newDetailm.password,
         storename: formData.storename,
       };
-      console.log(newDetail);
+  
+      // console.log(newDetail);
       try {
         const response = await fetch('http://localhost:3000/addStore', {
           method: 'POST',
@@ -131,10 +140,11 @@ const Authentication = () => {
           body: JSON.stringify(newDetail),
         });
         const data = await response.json();
-        if (data.message === 'User_details_saved') {
-          setProfile(data.data); // Assuming the backend sends user profile data
-          localStorage.setItem('userProfile', JSON.stringify(data.data));
-          navigate('/dashboard');
+        console.log(data);
+        if (data.success) {
+          setProfile(newDetail);
+          localStorage.setItem('userProfile', JSON.stringify(newDetail));
+          navigate(`/${profile?.storename || 'default'}/dashboard`);;
         } else {
           setError('Invalid credentials, please try again.');
         }
@@ -148,7 +158,7 @@ const Authentication = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     const credentialResponseDecoded = jwtDecode(credentialResponse.credential);
     setGoogleResp(credentialResponseDecoded);
-    console.log(credentialResponseDecoded);
+    // console.log(credentialResponseDecoded);
     try {
       const response = await fetch('http://localhost:3000/auth', {
         method: 'POST',
@@ -160,7 +170,7 @@ const Authentication = () => {
       if (data.message === 'Account_exists') {
         setProfile(credentialResponseDecoded);
         localStorage.setItem('userProfile', JSON.stringify(credentialResponseDecoded));
-        navigate('/dashboard');
+        navigate(`/${profile?.storename || 'default'}/dashboard`);;
       } else if (data.message === 'New_User_Created') {
         setProfile(credentialResponseDecoded);
         setIsFormElement(true);
