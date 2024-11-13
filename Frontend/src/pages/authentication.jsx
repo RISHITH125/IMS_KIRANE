@@ -169,8 +169,10 @@ const Authentication = () => {
       });
       const data = await response.json();
       const userDet=data.userdet;
+      console.log(userDet);
       if (data.message === 'Account_exists') {
         setProfile(userDet);
+        console.log(profile);
         localStorage.setItem('userProfile', JSON.stringify(userDet));
         navigate(`/${userDet?.storename || 'default'}/dashboard`);;
       } else if (data.message === 'New_User_Created') {

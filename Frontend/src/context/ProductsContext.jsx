@@ -39,32 +39,41 @@ export const ProductsProvider = ({ children }) => {
 
 
   useEffect(() => {
-    // Initialize productsData from local storage or with Initial data
-    const storedProducts = localStorage.getItem('productsData');
-    if (storedProducts) {
-      setProductsData(JSON.parse(storedProducts));
-    } else {
-      console.log('Fetching products data from the server');
-      console.log(profile);
-       async () => {
-
-        try{
-          const response = await fetch(`http://localhost:3000/${profile?.storename}/products`);
-          const data = await response.json();
-          console.log(data);
-          if(data.result){
-            setProductsData(data.message);
-            localStorage.setItem('productsData', JSON.stringify(data.message));
+    if (profile) {
+      console.log('Fetching products data for:', profile.storename);
+  
+      const fetchProductsData = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:3000/${profile.storename}/products`
+          );
+  
+          // Check if the response is okay
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
           }
-        }catch(err){
-          console.error('Some error occured while fetching category wise product details: ', err);
   
+          const responseData = await response.json();
+  
+          // Use the `response` variable to process data further
+          if (responseData.result) {
+            console.log('Fetched data successfully:', responseData.message);
+            const proddat=responseData.userdet
+            console.log(proddat)
+            setProductsData(proddat.userdet);
+            localStorage.setItem('productsData', JSON.stringify(proddat));
+          } else {
+            console.warn('Data fetch was not successful:', responseData.message);
+          }
+        } catch (err) {
+          console.error('Error fetching category-wise product details:', err);
         }
-  
       };
-
+  
+      fetchProductsData();
     }
-  }, []);
+  }, [profile]); // Depend on profile
+  
 
   const addProduct = (newProduct) => {
     const updatedProducts = [...productsData, newProduct];

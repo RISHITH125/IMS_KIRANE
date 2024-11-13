@@ -27,10 +27,11 @@ module.exports = {
 
     // this is for /login api
     loginPage: async function (genpool, email, password) {
+        
         try {
-
+            await genpool.query(`USE store;`);
             console.log(email, password)
-            // await genpool.query(`USE store;`);
+            
 
             const passwordhash = hashPassword(password);
 
@@ -71,9 +72,9 @@ module.exports = {
 
     AuthPage: async function (genpool, email, sub_claim) {
         
-        await genpool.query(`USE store;`);
         try {
-
+            
+            await genpool.query(`USE store;`);
     
             const [rows] = await genpool.query(
                `SELECT storename, username FROM user WHERE email = ? AND jti = ?`,
@@ -112,6 +113,7 @@ module.exports = {
     signUpPage: async function (genpool, username, email, password) {
         try {
             // await genpool.query(`USE store;`);
+            await genpool.query(`USE store;`);
             
             // Check if the user already exists
             const [rows] = await genpool.query(`
@@ -149,6 +151,7 @@ module.exports = {
     googleAuth: async function (genpool, username, email, jti) {
         try {
             // await genpool.query(`USE store;`);
+            await genpool.query(`USE store;`);
             // Check if the user with Google Auth exists
             const [rows] = await genpool.query(
                 `
@@ -190,9 +193,9 @@ module.exports = {
     
     checkStore: async function(genpool, storename) {
 
-        await genpool.query(`USE store;`);
         
         try {
+            await genpool.query(`USE store;`);
             const [databases] = await genpool.query(`SHOW DATABASES;`);
             const databaseExists = databases.some(db => db.Database === storename);
 
