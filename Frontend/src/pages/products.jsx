@@ -23,15 +23,6 @@ const Categories = () => {
 
   const [filteredProducts, setFilteredProducts] = useState(productsData);
 
-  useEffect(() => {
-    const storedProducts = localStorage.getItem('Products');
-    if (storedProducts) {
-      const parsedProducts = JSON.parse(storedProducts);
-      setProductsData(parsedProducts);
-      setFilteredProducts(parsedProducts); // Initialize filtered products
-    }
-  }, [])
-
   const handleAddProduct = (newProduct) => {
     setNewProducts((prevProducts) => [...prevProducts, newProduct]);
     const existingProduct = productsData.find(product =>
@@ -54,6 +45,10 @@ const Categories = () => {
       console.log(`Product '${newProduct.productName}' in category '${categoryNameToUse}' already exists`);
     }
   };
+
+
+  console.log('productsData:', productsData);
+console.log('filteredProducts:', filteredProducts);
 
   const groupedProducts = (filteredProducts.length > 0 ? filteredProducts : productsData).reduce((acc, product) => {
     if (!acc[product.categoryName]) {

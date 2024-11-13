@@ -44,12 +44,21 @@ export const ProductsProvider = ({ children }) => {
     if (storedProducts) {
       setProductsData(JSON.parse(storedProducts));
     } else {
-      fetch(`http://localhost:3000/${profile?.storename}/products`)
-        .then((response) => response.json())
-        .then((data) => {
-          setProductsData(data);
-          localStorage.setItem('productsData', JSON.stringify(data));
-        });
+       async () => {
+        try{
+          const response = await fetch(`http://localhost:300/${profile.storename}/products`);
+          const data = await response.json();
+          if(data.result){
+            setProductsData(data.message);
+            localStorage.setItem('productsData', JSON.stringify(data.message));
+          }
+        }catch(err){
+          console.error('Some error occured while fetching category wise product details: ', err);
+  
+        }
+  
+      };
+
     }
   }, []);
 

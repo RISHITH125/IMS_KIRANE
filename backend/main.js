@@ -4,7 +4,7 @@ require("dotenv").config();
 const mysql = require("mysql2/promise");
 const cors = require("cors");
 
-const { createStoreDatabase, loginPage, signUpPage, googleAuth, checkStore, loginCreate } = require("./login.js");
+const { createStoreDatabase, loginPage, signUpPage, googleAuth, checkStore, loginCreate, AuthPage } = require("./login.js");
 const { dispSupplier } = require("./supplierDisp.js");
 const { purchaseDisp } = require("./purchaseDisp.js");
 const { prodCatDisp } = require("./prodCatDisp.js");
@@ -134,9 +134,10 @@ app.post("/auth", async (req, res) => {
 
         // Handle user authentication or creation in the database
         const result = await googleAuth(genpool, payload.name, payload.email, sub_claim);
+        const ressend = await AuthPage(genpool, payload.email, sub_claim);
 
-        if (result.success) {
-            res.status(200).json({ message: result.message, data: payload });
+        if (result.success && ressend.success) {
+            res.status(200).json({ message: result.message, data: payload , userdet: ressend.data});
         } else {
             res.status(400).json({ message: result.message });
         }
@@ -150,15 +151,15 @@ app.post("/auth", async (req, res) => {
   app.get("/:storename/products", async (req, res) => {
     const { storename } = req.params;
     console.log("Store name:", storename); // Log the storename from the request
+  
     try {
-      // const rows = await prodCatDisp(genpool, storename); // Pass storename to the query
-      const [rows] = await prodCatDisp(genpool); // Pass storename to the query
-      console.log("Query result:", rows); // Log the query results
-
+      // Fetch products for the given storename
+      const rows = await prodCatDisp(genpool, storename); // Use the correct function call
+      console.log("Rows:", rows); // Log the rows to check if data is fetched
       if (rows && rows.length > 0) {
         res.json({
           result: true,
-          message: rows, // Rows are already in the desired JSON format
+          message: rows, // Return the rows directly as JSON
         });
       } else {
         res.json({
@@ -174,53 +175,7 @@ app.post("/auth", async (req, res) => {
       });
     }
   });
-
-  // Start the Express server (assuming `app` is already defined)
-  // const port = process.env.PORT || 3000;
-  // Function to generate an HTML table
-  // function generateHtmlTable(rows, title = "Data Table") {
-  //     if (rows.length === 0) return `<h1>No Data Available</h1>`;
-
-  //     return `
-  //         <html>
-  //             <head>
-  //                 <title>${title}</title>
-  //                 <style>
-  //                     table { width: 100%; border-collapse: collapse; }
-  //                     th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
-  //                     th { background-color: #f2f2f2; }
-  //                 </style>
-  //             </head>
-  //             <body>
-  //                 <h1>${title}</h1>
-  //                 <table>
-  //                     <tr>${Object.keys(rows[0]).map(key => `<th>${key}</th>`).join('')}</tr>
-  //                     ${rows.map(row => `
-  //                         <tr>${Object.values(row).map(value => `<td>${value}</td>`).join('')}</tr>
-  //                     `).join('')}
-  //                 </table>
-  //             </body>
-  //         </html>
-  //     `;
-  // }
-
-  // Route to display JSON data in a table format
-  // app.get('/products/table', async (req, res) => {
-  //     try {
-  //         // Query to get all products
-  //         const [rows] = await pool.query('SELECT * FROM product');
-
-  //         // Generate HTML table dynamically from rows with key-value pairs
-  //         const html = generateHtmlTable(rows, "Product Information")
-
-  //         // Send the HTML response
-  //         res.send(html);
-  //     } catch (error) {
-  //         console.error('Error fetching product data:', error);
-  //         res.status(500).send('Error fetching product data');
-  //     }
-  // });
-
+  
   // Route to add Product details into table
   app.post("/addProduct", async (req, res) => {
     try {

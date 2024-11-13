@@ -1,3 +1,6 @@
+const mysql = require('mysql2');
+
+
 module.exports = {
     prodCatDisp: async function (pool, storename) {
         try {

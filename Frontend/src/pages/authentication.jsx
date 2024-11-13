@@ -146,7 +146,7 @@ const Authentication = () => {
         if (data.success) {
           setProfile(newDetail);
           localStorage.setItem('userProfile', JSON.stringify(newDetail));
-          navigate(`/${profile?.storename || 'default'}/dashboard`);;
+          navigate(`/${newDetail.storename || 'default'}/dashboard`);;
         } else {
           setError('Invalid credentials, please try again.');
         }
@@ -168,13 +168,13 @@ const Authentication = () => {
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
       const data = await response.json();
-
+      const userDet=data.userdet;
       if (data.message === 'Account_exists') {
-        setProfile(credentialResponseDecoded);
-        localStorage.setItem('userProfile', JSON.stringify(credentialResponseDecoded));
-        navigate(`/${profile?.storename || 'default'}/dashboard`);;
+        setProfile(userDet);
+        localStorage.setItem('userProfile', JSON.stringify(userDet));
+        navigate(`/${userDet?.storename || 'default'}/dashboard`);;
       } else if (data.message === 'New_User_Created') {
-        setProfile(credentialResponseDecoded);
+        setProfile(userDet);
         setIsFormElement(true);
         localStorage.setItem('userProfile', JSON.stringify(credentialResponseDecoded));
       } else {

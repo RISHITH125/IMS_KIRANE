@@ -68,6 +68,46 @@ module.exports = {
         }
     },    
 
+
+    AuthPage: async function (genpool, email, sub_claim) {
+        
+        await genpool.query(`USE store;`);
+        try {
+
+    
+            const [rows] = await genpool.query(
+               `SELECT storename, username FROM user WHERE email = ? AND jti = ?`,
+                [email, sub_claim]
+            ); 
+    
+            if (rows.length === 0) {
+                return {
+                    success: false,
+                    data: "User not found or incorrect credentials",
+                };
+            } else {
+                console.log(rows)
+                let tempdatabase = rows[0].storename
+                await genpool.query(`USE ${tempdatabase}`)
+                const [details] = await genpool.query(`SELECT u.userid,u.username,u.fullname,u.dateCreated,u.storename,up.phno,ue.email FROM user AS u LEFT JOIN user_phno AS up ON u.userid=up.userid LEFT JOIN user_email AS ue ON u.userid = ue.userid ORDER BY u.userid;`)
+
+                console.log(JSON.stringify(details[0]));
+                return {
+                    success: true,
+                    data: details[0] // Assuming you want the first matching row
+                };
+            }
+        } catch (err) {
+            console.error("Wasn't able to access the store database or the user table does not exist!", err);
+            return {
+                success: false,
+                message: "Database error",
+                error: err
+            };
+        }
+    },    
+
+
     // this is for signup endpoint
     signUpPage: async function (genpool, username, email, password) {
         try {
@@ -149,6 +189,9 @@ module.exports = {
     },
     
     checkStore: async function(genpool, storename) {
+
+        await genpool.query(`USE store;`);
+        
         try {
             const [databases] = await genpool.query(`SHOW DATABASES;`);
             const databaseExists = databases.some(db => db.Database === storename);
