@@ -25,7 +25,7 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
             ...formData,
             price: Number(formData.price),
             quantity: Number(formData.quantity),
-            productid: "NewProduct",
+            productID: Date.now(),
             categoryID: Math.floor(Math.random() * 1000)
         };
         console.log("New Product Data:", newProduct);

@@ -24,10 +24,9 @@ category information is:
     categoryName
 */
 module.exports = {
-    productCreate: async function(storeName,pool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiryDate) {
+    productCreate: async function(pool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiryDate) {
         // dateAdded is the day that the user adds the product.
         try {
-            await pool.query(`USE \`${storeName}\`;`);
             const dateAdded = new Date().toISOString().split('T')[0];
             await pool.query(
                 `INSERT INTO product (productName, price, supplierID, categoryID, quantity, reorderLevel, expiry, dateadded) 
@@ -39,9 +38,8 @@ module.exports = {
         }
     },
 
-    updateProdQuant: async function (pool, productid, newQuantity,storeName) {
+    updateProdQuant: async function (pool, productid, newQuantity) {
         try {
-            await pool.query(`USE \`${storeName}\`;`);
             await pool.query(`
                 UPDATE product 
                 SET quantity = ?
@@ -52,9 +50,8 @@ module.exports = {
         }
     },
 
-    categoryAdd: async function(pool, description, categoryName,storeName) {
+    categoryAdd: async function(pool, description, categoryName) {
         try {
-            await pool.query(`USE \`${storeName}\`;`);
             await pool.query(`
                 INSERT IGNORE INTO category(description, categoryName) 
                 VALUES (?, ?)`, [description, categoryName]);

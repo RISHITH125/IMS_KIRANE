@@ -1,7 +1,6 @@
 module.exports = {
-    categoryNametoID: async function (pool, categoryName,storeName) {
+    categoryNametoID: async function (pool, categoryName) {
         try {
-            await pool.query(`USE \`${storeName}\`;`);
             const [rows] = await pool.query(`
                 SELECT categoryID FROM category WHERE categoryName = ?
             `, [categoryName]);
@@ -13,9 +12,8 @@ module.exports = {
         }
     },
 
-    supplierNametoID: async function(pool, supplierName,storeName) {
+    supplierNametoID: async function(pool, supplierName) {
         try {
-            await pool.query(`USE \`${storeName}\`;`);
             const [rows] = await pool.query(`
                 SELECT supplierID FROM supplier WHERE supplierName = ?
             `, [supplierName]);

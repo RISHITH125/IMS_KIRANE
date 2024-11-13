@@ -27,7 +27,7 @@ const Authentication = () => {
     if (userProfile) {
       setProfile(JSON.parse(userProfile));
     }
-  }, [profile, setProfile]);
+  }, []);
   
 
   const [googleresp, setGoogleResp] = useState({});
@@ -112,9 +112,7 @@ const Authentication = () => {
           if (data.message === true) {
             setProfile(data.data); // Assuming the backend sends user profile data
             localStorage.setItem('userProfile', JSON.stringify(data.data));
-            setProfile(data.data);
-            const storename = data.data.storename;
-            navigate(`/${storename||'default'}/dashboard`);;
+            navigate(`/${profile?.storename || 'default'}/dashboard`);;
           } else {
             setError('Invalid credentials, please try again.');
           }
@@ -146,7 +144,7 @@ const Authentication = () => {
         if (data.success) {
           setProfile(newDetail);
           localStorage.setItem('userProfile', JSON.stringify(newDetail));
-          navigate(`/${newDetail.storename || 'default'}/dashboard`);;
+          navigate(`/${profile?.storename || 'default'}/dashboard`);;
         } else {
           setError('Invalid credentials, please try again.');
         }
@@ -168,15 +166,13 @@ const Authentication = () => {
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
       const data = await response.json();
-      const userDet=data.userdet;
-      console.log(userDet);
+
       if (data.message === 'Account_exists') {
-        setProfile(userDet);
-        console.log(profile);
-        localStorage.setItem('userProfile', JSON.stringify(userDet));
-        navigate(`/${userDet?.storename || 'default'}/dashboard`);;
+        setProfile(credentialResponseDecoded);
+        localStorage.setItem('userProfile', JSON.stringify(credentialResponseDecoded));
+        navigate(`/${profile?.storename || 'default'}/dashboard`);;
       } else if (data.message === 'New_User_Created') {
-        setProfile(userDet);
+        setProfile(credentialResponseDecoded);
         setIsFormElement(true);
         localStorage.setItem('userProfile', JSON.stringify(credentialResponseDecoded));
       } else {

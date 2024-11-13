@@ -4,7 +4,7 @@ require("dotenv").config();
 const mysql = require("mysql2/promise");
 const cors = require("cors");
 
-const { createStoreDatabase, loginPage, signUpPage, googleAuth, checkStore, loginCreate, AuthPage } = require("./login.js");
+const { createStoreDatabase, loginPage, signUpPage, googleAuth, checkStore, loginCreate } = require("./login.js");
 const { dispSupplier } = require("./supplierDisp.js");
 const { purchaseDisp } = require("./purchaseDisp.js");
 const { prodCatDisp } = require("./prodCatDisp.js");
@@ -41,11 +41,11 @@ let genpool = mysql.createPool({
       console.log("Result:", result); // Log the result to check
       if (result.success) {
         // Check that data is not empty
-        const userDet = result.data; // Destructure storename and name from the first object in the array
-        console.log(userDet.storename, userDet.username); // Log both values to confirm
+        const { storename, username: username } = result.data[0]; // Destructure storename and name from the first object in the array
+        console.log(storename, username); // Log both values to confirm
 
-        const storeResult = await checkStore(genpool, userDet.storename);
-        // console.log(storeResult);
+        const storeResult = await checkStore(genpool, storename);
+        console.log(storeResult);
 
         // // This is done to check if the user proceeded 
         if (storeResult.success) {
@@ -56,7 +56,7 @@ let genpool = mysql.createPool({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
-            database: userDet.storename, // Now use the new database
+            database: storename, // Now use the new database
           });
         } else {
           res.status(404).json({message: false, data: storeResult.message})
@@ -65,7 +65,7 @@ let genpool = mysql.createPool({
         //   select * from product;`)
         // console.log(rows)
         // Respond to the client with a success message and relevant data
-        res.status(200).json({ message: true, data: userDet });
+        res.status(200).json({ message: true, data: { username, storename } });
       } else {
         res.status(404).json({ message: result.data });
       }
@@ -134,10 +134,9 @@ app.post("/auth", async (req, res) => {
 
         // Handle user authentication or creation in the database
         const result = await googleAuth(genpool, payload.name, payload.email, sub_claim);
-        const ressend = await AuthPage(genpool, payload.email, sub_claim);
 
-        if (result.success && ressend.success) {
-            res.status(200).json({ message: result.message, data: payload , userdet: ressend.data});
+        if (result.success) {
+            res.status(200).json({ message: result.message, data: payload });
         } else {
             res.status(400).json({ message: result.message });
         }
@@ -151,15 +150,15 @@ app.post("/auth", async (req, res) => {
   app.get("/:storename/products", async (req, res) => {
     const { storename } = req.params;
     console.log("Store name:", storename); // Log the storename from the request
-  
     try {
-      // Fetch products for the given storename
-      const rows = await prodCatDisp(genpool, storename); // Use the correct function call
-      console.log("Rows:", rows); // Log the rows to check if data is fetched
+      // const rows = await prodCatDisp(genpool, storename); // Pass storename to the query
+      const rows = await prodCatDisp(genpool); // Pass storename to the query
+      console.log("Query result:", rows); // Log the query results
+
       if (rows && rows.length > 0) {
         res.json({
           result: true,
-          message: rows, // Return the rows directly as JSON
+          message: rows, // Rows are already in the desired JSON format
         });
       } else {
         res.json({
@@ -175,9 +174,55 @@ app.post("/auth", async (req, res) => {
       });
     }
   });
-  
+
+  // Start the Express server (assuming `app` is already defined)
+  // const port = process.env.PORT || 3000;
+  // Function to generate an HTML table
+  // function generateHtmlTable(rows, title = "Data Table") {
+  //     if (rows.length === 0) return `<h1>No Data Available</h1>`;
+
+  //     return `
+  //         <html>
+  //             <head>
+  //                 <title>${title}</title>
+  //                 <style>
+  //                     table { width: 100%; border-collapse: collapse; }
+  //                     th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+  //                     th { background-color: #f2f2f2; }
+  //                 </style>
+  //             </head>
+  //             <body>
+  //                 <h1>${title}</h1>
+  //                 <table>
+  //                     <tr>${Object.keys(rows[0]).map(key => `<th>${key}</th>`).join('')}</tr>
+  //                     ${rows.map(row => `
+  //                         <tr>${Object.values(row).map(value => `<td>${value}</td>`).join('')}</tr>
+  //                     `).join('')}
+  //                 </table>
+  //             </body>
+  //         </html>
+  //     `;
+  // }
+
+  // Route to display JSON data in a table format
+  // app.get('/products/table', async (req, res) => {
+  //     try {
+  //         // Query to get all products
+  //         const [rows] = await pool.query('SELECT * FROM product');
+
+  //         // Generate HTML table dynamically from rows with key-value pairs
+  //         const html = generateHtmlTable(rows, "Product Information")
+
+  //         // Send the HTML response
+  //         res.send(html);
+  //     } catch (error) {
+  //         console.error('Error fetching product data:', error);
+  //         res.status(500).send('Error fetching product data');
+  //     }
+  // });
+
   // Route to add Product details into table
-  app.post("/:storename/addProduct", async (req, res) => {
+  app.post("/addProduct", async (req, res) => {
     try {
       const {
         productName,
@@ -214,7 +259,7 @@ app.post("/auth", async (req, res) => {
   });
 
   // This is just for testing purposes
-  app.get("/:storename/addProductTest", async (req, res) => {
+  app.get("/addProductTest", async (req, res) => {
     try {
       // Extract values from the query parameters
       const {
@@ -277,7 +322,7 @@ app.post("/auth", async (req, res) => {
   });
 
   // Route to update product quantity detials
-  app.post("/:storename/updateProd", async (req, res) => {
+  app.post("/updateProd", async (req, res) => {
     try {
       const { productid, quantity } = req.body;
 
@@ -292,7 +337,7 @@ app.post("/auth", async (req, res) => {
   });
 
   // This is just to test
-  app.get("/:storename/updateProdTest", async (req, res) => {
+  app.get("/updateProdTest", async (req, res) => {
     try {
       // Extract productid and quantity from query parameters
       const { productid, quantity } = req.query;
@@ -305,7 +350,7 @@ app.post("/auth", async (req, res) => {
       }
 
       // Call a function to update the product quantity in the database
-      const result = await updateProdQuant(genpool, productid, quantity);
+      const result = await updateProdQuant(pool, productid, quantity);
 
       res.status(200).json({ message: "Product updated successfully", result });
     } catch (error) {
@@ -315,7 +360,7 @@ app.post("/auth", async (req, res) => {
   });
 
   // Route to fetch supplier information as JSON
-  app.get("/:storename/suppliers", async (req, res) => {
+  app.get("/suppliers", async (req, res) => {
     try {
       const rows = await dispSupplier(pool); // Call to fetch supplier information with JOINs
       res.json(rows); // Send JSON response with key-value pairs for each row
@@ -325,8 +370,21 @@ app.post("/auth", async (req, res) => {
     }
   });
 
+  // Route to display supplier information in a table format
+  app.get("/suppliers/table", async (req, res) => {
+    try {
+      const rows = await dispSupplier(pool); // Fetch supplier information with JOINs
+      // Generate HTML table from rows
+      const html = generateHtmlTable(rows, "Supplier Information");
+      res.send(html); // Send the HTML response
+    } catch (error) {
+      console.error("Error fetching supplier data:", error);
+      res.status(500).send("Error fetching supplier data");
+    }
+  });
+
   // Route to fetch purchase order information as JSON
-  app.get("/:storename/purchaseOrders", async (req, res) => {
+  app.get("/purchaseOrders", async (req, res) => {
     try {
       const [rows] = await purchaseDisp(pool);
       res.json(rows); // Send JSON response with key-value pairs for each row
@@ -336,14 +394,38 @@ app.post("/auth", async (req, res) => {
     }
   });
 
+  // Route to display purchase order information in a table format
+  app.get("/purchaseOrders/table", async (req, res) => {
+    try {
+      const [rows] = await purchaseDisp(pool);
 
-
+      // Generate HTML table from rows
+      const html = generateHtmlTable(rows, "Purchase Order Information");
+      res.send(html); // Send the HTML response
+    } catch (error) {
+      console.error("Error fetching purchase order data:", error);
+      res.status(500).send("Error fetching purchase order data");
+    }
+  });
 
   // Route to fetch supplier information as JSON
-  app.get("/:storename/prodCat", async (req, res) => {
+  app.get("/prodCat", async (req, res) => {
     try {
       const rows = await prodCatDisp(pool); // Call to fetch supplier information with JOINs
       res.json(rows); // Send JSON response with key-value pairs for each row
+    } catch (error) {
+      console.error("Error fetching product Category data:", error);
+      res.status(500).send("Error fetching product Category data");
+    }
+  });
+
+  // Route to display supplier information in a table format
+  app.get("/prodCat/table", async (req, res) => {
+    try {
+      const rows = await prodCatDisp(pool); // Fetch supplier information with JOINs
+      // Generate HTML table from rows
+      const html = generateHtmlTable(rows, "Product Category Information");
+      res.send(html); // Send the HTML response
     } catch (error) {
       console.error("Error fetching product Category data:", error);
       res.status(500).send("Error fetching product Category data");
@@ -354,119 +436,4 @@ app.post("/auth", async (req, res) => {
   app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
   });
-
-
-  //handle new products and updated items 
-  app.post("/:storename/newupdateprods", async (req, res) => {
-    try {
-      const { updatedItems, newProducts, storename } = req.body;
-  
-      if (!updatedItems && !newProducts) {
-        return res.status(400).json({ message: "No data provided" });
-      }
-  
-
-      const updateResults = [];
-      const newProductResults = [];
-  
-      // Handle updatedItems
-      if (updatedItems && updatedItems.length > 0) {
-        for (const item of updatedItems) {
-          const { productid, quantity } = item;
-  
-          if (!productid || quantity == null) {
-            return res
-              .status(400)
-              .json({ message: "Missing productid or quantity in updatedItems" });
-          }
-  
-          const updateResult = await updateProdQuant(genpool, productid, quantity,storename);
-          updateResults.push({ productid, quantity, updateResult });
-        }
-      }
-  
-      // Handle newProducts
-      if (newProducts && newProducts.length > 0) {
-        for (const product of newProducts) {
-          const {
-            productName,
-            price,
-            supplierName,
-            categoryName,
-            quantity,
-            reorderLevel,
-            expiry,
-          } = product;
-  
-          if (
-            !productName ||
-            price == null ||
-            !supplierName ||
-            !categoryName ||
-            quantity == null ||
-            reorderLevel == null ||
-            !expiry
-          ) {
-            return res.status(400).json({
-              message: "Missing required fields in newProducts",
-            });
-          }
-  
-          const categoryID = await categoryNametoID(genpool, categoryName,storename);
-          const supplierID = await supplierNametoID(genpool, supplierName,storename);
-  
-          if (categoryID === null) {
-            await categoryAdd(genpool, null, categoryName,storename);
-          }
-          if (supplierID === null) {
-            return res.status(404).send("Supplier not found");
-          }
-  
-          const newProductResult = await productCreate(
-            storename,
-            genpool,
-            productName,
-            price,
-            supplierID,
-            categoryID,
-            quantity,
-            reorderLevel,
-            new Date(expiry) // Ensure expiry is a Date object
-          );
-  
-          newProductResults.push({
-            productName,
-            price,
-            supplierName,
-            categoryName,
-            quantity,
-            reorderLevel,
-            expiry,
-            newProductResult,
-          });
-        }
-      }
-  
-      // Respond with results
-      res.status(201).json({
-        result: true,
-        message:"Products updated and/or added successfully",
-        // updatedItems: updateResults,
-        // newProducts: newProductResults,
-      });
-    } catch (error) {
-      console.error("Error processing /newupdateprods:", error);
-      res.status(500).json({ message: "Server error", error });
-    }
-  });
-  
-
-
-
-
-
-
-
-
-
 })();

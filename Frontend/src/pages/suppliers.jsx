@@ -140,7 +140,7 @@ const Suppliers = () => {
                             </div>
 
                             <div className="">
-                                {suppliers.map((supplier,index) => {
+                                {suppliers.map((supplier) => {
                                     // Check if this supplier has any orders in filteredOrders
                                     const supplierHasFilteredOrders = filteredOrders.some(order => order.supplierID === supplier.supplierID);
 
@@ -150,7 +150,7 @@ const Suppliers = () => {
                                     }
 
                                     return (
-                                        <div key={index} className="mb-6 bg-white p-6 rounded-lg shadow-lg">
+                                        <div key={supplier.supplierID} className="mb-6 bg-white p-6 rounded-lg shadow-lg">
                                             <div
                                                 onClick={() => toggleSupplier(supplier.supplierID)}
                                                 className="cursor-pointer text-xl font-semibold text-gray-700 flex items-center"
