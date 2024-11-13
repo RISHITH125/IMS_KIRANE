@@ -305,7 +305,7 @@ app.post("/auth", async (req, res) => {
       }
 
       // Call a function to update the product quantity in the database
-      const result = await updateProdQuant(pool, productid, quantity);
+      const result = await updateProdQuant(genpool, productid, quantity);
 
       res.status(200).json({ message: "Product updated successfully", result });
     } catch (error) {
@@ -336,6 +336,9 @@ app.post("/auth", async (req, res) => {
     }
   });
 
+
+
+
   // Route to fetch supplier information as JSON
   app.get("/:storename/prodCat", async (req, res) => {
     try {
@@ -351,4 +354,119 @@ app.post("/auth", async (req, res) => {
   app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
   });
+
+
+  //handle new products and updated items 
+  app.post("/:storename/newupdateprods", async (req, res) => {
+    try {
+      const { updatedItems, newProducts, storename } = req.body;
+  
+      if (!updatedItems && !newProducts) {
+        return res.status(400).json({ message: "No data provided" });
+      }
+  
+
+      const updateResults = [];
+      const newProductResults = [];
+  
+      // Handle updatedItems
+      if (updatedItems && updatedItems.length > 0) {
+        for (const item of updatedItems) {
+          const { productid, quantity } = item;
+  
+          if (!productid || quantity == null) {
+            return res
+              .status(400)
+              .json({ message: "Missing productid or quantity in updatedItems" });
+          }
+  
+          const updateResult = await updateProdQuant(genpool, productid, quantity,storename);
+          updateResults.push({ productid, quantity, updateResult });
+        }
+      }
+  
+      // Handle newProducts
+      if (newProducts && newProducts.length > 0) {
+        for (const product of newProducts) {
+          const {
+            productName,
+            price,
+            supplierName,
+            categoryName,
+            quantity,
+            reorderLevel,
+            expiry,
+          } = product;
+  
+          if (
+            !productName ||
+            price == null ||
+            !supplierName ||
+            !categoryName ||
+            quantity == null ||
+            reorderLevel == null ||
+            !expiry
+          ) {
+            return res.status(400).json({
+              message: "Missing required fields in newProducts",
+            });
+          }
+  
+          const categoryID = await categoryNametoID(genpool, categoryName,storename);
+          const supplierID = await supplierNametoID(genpool, supplierName,storename);
+  
+          if (categoryID === null) {
+            await categoryAdd(genpool, null, categoryName,storename);
+          }
+          if (supplierID === null) {
+            return res.status(404).send("Supplier not found");
+          }
+  
+          const newProductResult = await productCreate(
+            storename,
+            genpool,
+            productName,
+            price,
+            supplierID,
+            categoryID,
+            quantity,
+            reorderLevel,
+            new Date(expiry) // Ensure expiry is a Date object
+          );
+  
+          newProductResults.push({
+            productName,
+            price,
+            supplierName,
+            categoryName,
+            quantity,
+            reorderLevel,
+            expiry,
+            newProductResult,
+          });
+        }
+      }
+  
+      // Respond with results
+      res.status(201).json({
+        result: true,
+        message:"Products updated and/or added successfully",
+        // updatedItems: updateResults,
+        // newProducts: newProductResults,
+      });
+    } catch (error) {
+      console.error("Error processing /newupdateprods:", error);
+      res.status(500).json({ message: "Server error", error });
+    }
+  });
+  
+
+
+
+
+
+
+
+
+
 })();
