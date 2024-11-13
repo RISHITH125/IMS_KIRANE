@@ -40,7 +40,7 @@ export const ProductsProvider = ({ children }) => {
 
   useEffect(() => {
     if (profile) {
-      console.log('Fetching products data for:', profile.storename);
+      // console.log('Fetching products data for:', profile.storename);
   
       const fetchProductsData = async () => {
         try {
@@ -54,10 +54,10 @@ export const ProductsProvider = ({ children }) => {
           }
   
           const responseData = await response.json();
-          console.log('Response data:', responseData);
+          // console.log('Response data:', responseData);
           // Use the `response` variable to process data further
           if (responseData.result) {
-            console.log('Fetched data successfully:', responseData.message);
+            // console.log('Fetched data successfully:', responseData.message);
             const proddat=responseData.message
 
             setProductsData(proddat);

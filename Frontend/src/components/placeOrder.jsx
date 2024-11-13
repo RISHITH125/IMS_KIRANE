@@ -11,7 +11,7 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
             quantity: '',
             supplierID: '',
             supplierName: '',
-            productID: '',
+            productid: '',
             productName: '',
             price: '',
             categoryName: '',
@@ -73,7 +73,7 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
                 quantity: '',
                 supplierID: formData[currentProductIndex].supplierID,
                 supplierName: formData[currentProductIndex].supplierName,
-                productID: '',
+                productid: '',
                 productName: '',
                 price: '',
                 categoryName: '',
@@ -132,7 +132,7 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
     const isAddProductDisabled = () => {
         const currentProduct = formData[currentProductIndex];
         if(!formData[currentProductIndex].isNewProduct)
-        return !(currentProduct.productID && currentProduct.quantity && currentProduct.supplierID);
+        return !(currentProduct.quantity && currentProduct.supplierName && currentProduct.productid);
         else
         return !(currentProduct.productName && currentProduct.quantity && currentProduct.supplierID && currentProduct.price && currentProduct.categoryName && currentProduct.reorderLevel);
     };
@@ -173,19 +173,19 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
                                 <div>
                                     <label className="block font-semibold mb-1">Product</label>
                                     <select
-                                        name="productID"
-                                        value={formData[currentProductIndex].productID}
+                                        name="productid"
+                                        value={formData[currentProductIndex].productid}
                                         onChange={(e) => {
                                             const isNew = e.target.value === 'new';
                                             const SelectedProd = products.find(
-                                                (p) => p.productID === parseInt(e.target.value)
+                                                (p) => p.productid === parseInt(e.target.value)
                                             );
                                             setFormData((prevData) => {
                                                 const updatedData = [...prevData];
                                                 updatedData[currentProductIndex] = {
                                                     ...updatedData[currentProductIndex],
                                                     isNewProduct: isNew,
-                                                    productID: isNew ? '' : SelectedProd?.productID,
+                                                    productid: isNew ? '' : SelectedProd?.productid,
                                                     productName: isNew ? '' : SelectedProd?.productName,
                                                     categoryName: isNew ? '' : SelectedProd?.categoryName,
                                                     reorderLevel: isNew ? '' : SelectedProd?.reorderLevel,
@@ -200,7 +200,7 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
                                     >
                                         <option value="" disabled>Select Product</option>
                                         {products.map((product) => (
-                                            <option key={product.productID} value={product.productID}>
+                                            <option key={product.productid} value={product.productid}>
                                                 {product.productName}
                                             </option>
                                         ))}
