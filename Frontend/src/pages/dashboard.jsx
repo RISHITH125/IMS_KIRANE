@@ -7,18 +7,20 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 const Dashboard = () => {
+  
   const { profile, setProfile } = useUser();
 
   useEffect(() => {
     // Fetch or update the profile if needed
     // Example: setProfile({ name: 'John Doe', email: 'john.doe@example.com' });
+    
   }, [setProfile]);
 
   // console.log(profile);
 
   // Extract the username from the profile, if available
   const username = profile?.name ||profile?.username;
-
+  
   return (
     <div className="flex">
       {/* Sidebar */}

@@ -1,3 +1,5 @@
+const mysql = require('mysql2');
+
 module.exports = {
     prodCatDisp: async function (pool, storename) {
         try {
@@ -7,6 +9,7 @@ module.exports = {
             // Now, run your SELECT query
             const [rows] = await pool.query(`
                 SELECT 
+                    P.productid,
                     C.categoryName, 
                     P.productName, 
                     P.price, 
