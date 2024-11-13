@@ -48,7 +48,7 @@ const Categories = () => {
 
 
   console.log('productsData:', productsData);
-console.log('filteredProducts:', filteredProducts);
+  console.log('filteredProducts:', filteredProducts);
 
   const groupedProducts = (filteredProducts.length > 0 ? filteredProducts : productsData).reduce((acc, product) => {
     if (!acc[product.categoryName]) {
