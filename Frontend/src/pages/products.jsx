@@ -79,35 +79,35 @@ const Categories = () => {
     }));
   };
 
-  const handleQuantityInputChange = (productID, value) => {
+  const handleQuantityInputChange = (productid, value) => {
     setQuantityInput((prevInput) => ({
       ...prevInput,
-      [productID]: parseInt(value) || 0 // Set to 0 if input is empty or invalid
+      [productid]: parseInt(value) || 0 // Set to 0 if input is empty or invalid
     }));
   };
 
-  const handleQuantityChange = (productID, delta) => {
+  const handleQuantityChange = (productid, delta) => {
     setUpdatedItems((prevItems) => {
-      const currentQuantity = prevItems[productID]?.quantity || productsData.find(prod => prod.productid === productID)?.quantity;
-      const changeValue = quantityInput[productID] || 1;
+      const currentQuantity = prevItems[productid]?.quantity || productsData.find(prod => prod.productid === productid)?.quantity;
+      const changeValue = quantityInput[productid] || 1;
       const newQuantity = currentQuantity + delta * changeValue;
 
       if (newQuantity < 0) return prevItems;
 
       return {
         ...prevItems,
-        [productID]: {
-          ...prevItems[productID],
+        [productid]: {
+          ...prevItems[productid],
           quantity: newQuantity
         }
       };
     });
   };
 
-  // Transform `updatedItems` to array of JSON objects with `productID` and `quantity`
+  // Transform `updatedItems` to array of JSON objects with `productid` and `quantity`
   const getUpdatedItemsArray = () => {
-    return Object.entries(updatedItems).map(([productID, item]) => ({
-      productID: parseInt(productID),
+    return Object.entries(updatedItems).map(([productid, item]) => ({
+      productid: parseInt(productid),
       quantity: item.quantity
     }));
   };
@@ -121,7 +121,8 @@ const Categories = () => {
       updatedItems: updatedItemsArray.length > 0 ? updatedItemsArray : [],
       newProducts: newProducts.length > 0 ? newProducts : [],
     };
-    console.log('Payload:', payload);
+    const payloadjson=JSON.stringify(payload)
+    console.log('Payload:', payloadjson);
     try {
       const storename = profile?.storename
       // Send a POST request
