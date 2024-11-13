@@ -44,10 +44,14 @@ export const ProductsProvider = ({ children }) => {
     if (storedProducts) {
       setProductsData(JSON.parse(storedProducts));
     } else {
+      console.log('Fetching products data from the server');
+      console.log(profile);
        async () => {
+
         try{
-          const response = await fetch(`http://localhost:300/${profile.storename}/products`);
+          const response = await fetch(`http://localhost:3000/${profile?.storename}/products`);
           const data = await response.json();
+          console.log(data);
           if(data.result){
             setProductsData(data.message);
             localStorage.setItem('productsData', JSON.stringify(data.message));
