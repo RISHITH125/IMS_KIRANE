@@ -177,7 +177,7 @@ app.post("/auth", async (req, res) => {
   });
   
   // Route to add Product details into table
-  app.post("/addProduct", async (req, res) => {
+  app.post("/:storename/addProduct", async (req, res) => {
     try {
       const {
         productName,
@@ -214,7 +214,7 @@ app.post("/auth", async (req, res) => {
   });
 
   // This is just for testing purposes
-  app.get("/addProductTest", async (req, res) => {
+  app.get("/:storename/addProductTest", async (req, res) => {
     try {
       // Extract values from the query parameters
       const {
@@ -277,7 +277,7 @@ app.post("/auth", async (req, res) => {
   });
 
   // Route to update product quantity detials
-  app.post("/updateProd", async (req, res) => {
+  app.post("/:storename/updateProd", async (req, res) => {
     try {
       const { productid, quantity } = req.body;
 
@@ -292,7 +292,7 @@ app.post("/auth", async (req, res) => {
   });
 
   // This is just to test
-  app.get("/updateProdTest", async (req, res) => {
+  app.get("/:storename/updateProdTest", async (req, res) => {
     try {
       // Extract productid and quantity from query parameters
       const { productid, quantity } = req.query;
@@ -315,7 +315,7 @@ app.post("/auth", async (req, res) => {
   });
 
   // Route to fetch supplier information as JSON
-  app.get("/suppliers", async (req, res) => {
+  app.get("/:storename/suppliers", async (req, res) => {
     try {
       const rows = await dispSupplier(pool); // Call to fetch supplier information with JOINs
       res.json(rows); // Send JSON response with key-value pairs for each row
@@ -325,38 +325,11 @@ app.post("/auth", async (req, res) => {
     }
   });
 
-  // Route to display supplier information in a table format
-  app.get("/suppliers/table", async (req, res) => {
-    try {
-      const rows = await dispSupplier(pool); // Fetch supplier information with JOINs
-      // Generate HTML table from rows
-      const html = generateHtmlTable(rows, "Supplier Information");
-      res.send(html); // Send the HTML response
-    } catch (error) {
-      console.error("Error fetching supplier data:", error);
-      res.status(500).send("Error fetching supplier data");
-    }
-  });
-
   // Route to fetch purchase order information as JSON
-  app.get("/purchaseOrders", async (req, res) => {
+  app.get("/:storename/purchaseOrders", async (req, res) => {
     try {
       const [rows] = await purchaseDisp(pool);
       res.json(rows); // Send JSON response with key-value pairs for each row
-    } catch (error) {
-      console.error("Error fetching purchase order data:", error);
-      res.status(500).send("Error fetching purchase order data");
-    }
-  });
-
-  // Route to display purchase order information in a table format
-  app.get("/purchaseOrders/table", async (req, res) => {
-    try {
-      const [rows] = await purchaseDisp(pool);
-
-      // Generate HTML table from rows
-      const html = generateHtmlTable(rows, "Purchase Order Information");
-      res.send(html); // Send the HTML response
     } catch (error) {
       console.error("Error fetching purchase order data:", error);
       res.status(500).send("Error fetching purchase order data");
@@ -364,23 +337,10 @@ app.post("/auth", async (req, res) => {
   });
 
   // Route to fetch supplier information as JSON
-  app.get("/prodCat", async (req, res) => {
+  app.get("/:storename/prodCat", async (req, res) => {
     try {
       const rows = await prodCatDisp(pool); // Call to fetch supplier information with JOINs
       res.json(rows); // Send JSON response with key-value pairs for each row
-    } catch (error) {
-      console.error("Error fetching product Category data:", error);
-      res.status(500).send("Error fetching product Category data");
-    }
-  });
-
-  // Route to display supplier information in a table format
-  app.get("/prodCat/table", async (req, res) => {
-    try {
-      const rows = await prodCatDisp(pool); // Fetch supplier information with JOINs
-      // Generate HTML table from rows
-      const html = generateHtmlTable(rows, "Product Category Information");
-      res.send(html); // Send the HTML response
     } catch (error) {
       console.error("Error fetching product Category data:", error);
       res.status(500).send("Error fetching product Category data");
