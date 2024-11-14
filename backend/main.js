@@ -119,8 +119,7 @@ let genpool = mysql.createPool({
       // just check if password is hashed or not
       const { username, email, password, fullname, phno, storename } = req.body;
       await genpool.query(
-        `
-        UPDATE user SET storename = ? WHERE email = ?`,
+        `UPDATE user SET storename = ? WHERE email = ?`,
         [storename, email]
       );
       console.log(username, email, password, fullname, phno, storename);
@@ -134,6 +133,12 @@ let genpool = mysql.createPool({
         email,
         phno
       );
+
+      // call the triggers and functions and procedures
+      await productSaleUpdate(genpool)
+      await afterPurchaseUpdate(genpool)
+      await setFunction(genpool, storename)
+
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -362,6 +367,7 @@ let genpool = mysql.createPool({
     const { storename } = req.params;
     try {
       const rows = await dispSupplier(genpool, storename); // Call to fetch supplier information with JOINs
+      console.log("Rows:", rows); // Log the rows to check if data is fetched
       res.json({ success: true, data: rows }); // Send JSON response with key-value pairs for each row
     } catch (error) {
       console.error("Error fetching supplier data:", error);
@@ -375,15 +381,13 @@ let genpool = mysql.createPool({
   app.get("/:storename/purchaseOrders", async (req, res) => {
     const { storename } = req.params;
     try {
-      const [rows] = await purchaseDisp(genpool, storename);
-      res.json({ success: true, data: rows }); // Send JSON response with key-value pairs for each row
+        const rows = await purchaseDisp(genpool, storename); // No need to destructure here
+        res.status(200).json({ success: true, data: rows }); // Send JSON response with key-value pairs for each row
     } catch (error) {
-      console.error("Error fetching purchase order data:", error);
-      res
-        .status(500)
-        .json({ success: false, data: "Error fetching purchase order data" });
+        console.error("Error fetching purchase order data:", error);
+        res.status(500).json({ success: false, data: "Error fetching purchase order data" });
     }
-  });
+});
 
   app.post("/:storename/addPurchase", async (req, res) => {
     const { storename } = req.params;
@@ -667,13 +671,13 @@ let genpool = mysql.createPool({
 
   app.post("/:storename/sales", async (req, res) => {
     const { storename } = req.params;
-    const { productName, quantity, price, paymentMethod } = req.body;
+    const { productName, quantitySold, salesPrice, paymentMethod } = req.body;
 
     const result = await addSales(
       pool,
       productName,
-      quantity,
-      price,
+      quantitySold,
+      salesPrice,
       paymentMethod,
       storename
     );

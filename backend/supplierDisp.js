@@ -9,6 +9,7 @@ module.exports = {
                 SELECT 
                     S.supplierName, 
                     S.address, 
+                    S.supplierID,
                     GROUP_CONCAT(DISTINCT SP.phno) AS phone_numbers, 
                     GROUP_CONCAT(DISTINCT SE.email) AS emails
                 FROM 

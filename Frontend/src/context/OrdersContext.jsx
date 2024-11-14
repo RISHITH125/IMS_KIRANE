@@ -39,10 +39,7 @@ const OrdersContext = createContext();
 // const storename=profile?.storename
 // Provider component to wrap the app and provide the orders state
 export const OrdersProvider = ({ children}) => { // Accept storename as a prop
-    const [orders, setOrders] = useState(() => {
-        const savedOrders = localStorage.getItem('orders');
-        return savedOrders ? JSON.parse(savedOrders) : [];
-    });
+    const [orders, setOrders] = useState([]);
     // Provide the orders state, loading state, error state, and setter function to the rest of the app
     return (
         <OrdersContext.Provider value={{ orders,setOrders }}>
