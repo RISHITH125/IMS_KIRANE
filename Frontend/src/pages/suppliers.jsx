@@ -87,16 +87,39 @@ const Suppliers = () => {
         closePlaceOrderForm();
     };
     // console.log(orders);
-
-    const handleAddSupplier = (nSupplier) => {
-        setSuppliers([...suppliers, { supplierID: suppliers.length + 1, ...nSupplier }]);
-        setNewSupplier([...newSupplier]);
-        // console.log('new suppliers:-',newSupplier);
-        // console.log('suppliers:-',suppliers);
-
-        setIsAddSupplierOpen(false);
+    const handleAddSupplier = async (nSupplier) => {
+        try {
+            // Update state locally
+            const updatedSuppliers = [...suppliers, { supplierID: suppliers.length + 1, ...nSupplier }];
+            setSuppliers(updatedSuppliers);
+            setNewSupplier([...newSupplier]);
+    
+            // Prepare the data to send in the POST request
+            const requestData = {
+                newSuppliers: newSupplier,
+            };
+    
+            // Send POST request
+            const response = await fetch('/addSupplier', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Failed to add supplier: ${response.statusText}`);
+            }
+    
+            const result = await response.json();
+            console.log('Server response:', result);
+    
+        } catch (error) {
+            console.error('Error adding supplier:', error);
+        }
     };
-
+    
 
     useEffect(() => {
         const storedOrders = localStorage.getItem('orders');
