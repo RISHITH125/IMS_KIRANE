@@ -142,7 +142,7 @@ const Suppliers = () => {
                             <div className="">
                                 {suppliers.map((supplier,index) => {
                                     // Check if this supplier has any orders in filteredOrders
-                                    const supplierHasFilteredOrders = filteredOrders.some(order => order.supplierID === supplier.supplierID);
+                                    const supplierHasFilteredOrders = filteredOrders.some(order => order.supplierName === supplier.supplierName);
 
                                     // Only display the supplier and their orders if they have matching orders in filteredOrders
                                     if (filteredOrders.length > 0 && !supplierHasFilteredOrders) {
