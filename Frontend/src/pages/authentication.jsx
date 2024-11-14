@@ -108,7 +108,7 @@ const Authentication = () => {
             body: JSON.stringify(loginData),
           });
           const data = await response.json();
-          console.log(data);
+          // console.log(data);
           if (data.message === true) {
             setProfile(data.data); // Assuming the backend sends user profile data
             localStorage.setItem('userProfile', JSON.stringify(data.data));
@@ -142,7 +142,7 @@ const Authentication = () => {
           body: JSON.stringify(newDetail),
         });
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
         if (data.success) {
           setProfile(newDetail);
           localStorage.setItem('userProfile', JSON.stringify(newDetail));
@@ -169,10 +169,10 @@ const Authentication = () => {
       });
       const data = await response.json();
       const userDet=data.userdet;
-      console.log(userDet);
+      // console.log(userDet);
       if (data.message === 'Account_exists') {
         setProfile(userDet);
-        console.log(profile);
+        // console.log(profile);
         localStorage.setItem('userProfile', JSON.stringify(userDet));
         navigate(`/${userDet?.storename || 'default'}/dashboard`);;
       } else if (data.message === 'New_User_Created') {

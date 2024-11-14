@@ -17,12 +17,12 @@ export const SuppliersProvider = ({ children}) => {
                         "Content-Type": "application/json",
                     },
                 });
-                console.log(response)
+                // console.log(response)
 
                 if (response.ok) {
                     const data = await response.json();
 
-                    console.log(data)
+                    // console.log(data)
                     if (data.success) {
                         // Update suppliers state with the fetched data
                         setSuppliers(data.data);
