@@ -114,37 +114,50 @@ const Categories = () => {
 
   // Example function to send `updatedItemsArray`
   const handleSubmit = async () => {
-    // Prepare the payload
     const updatedItemsArray = getUpdatedItemsArray();
     const payload = {
       storename: profile?.storename,
       updatedItems: updatedItemsArray.length > 0 ? updatedItemsArray : [],
       newProducts: newProducts.length > 0 ? newProducts : [],
     };
-    const payloadjson=JSON.stringify(payload)
+    const payloadjson = JSON.stringify(payload);
     console.log('Payload:', payloadjson);
+  
     try {
-      const storename = profile?.storename
-      // Send a POST request
+      const storename = profile?.storename;
       const response = await fetch(`http://localhost:3000/${storename}/newupdateprods`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: payloadjson,
       });
+  
       const data = await response.json();
-      if (data.result)
+  
+      if (data.result) {
         console.log('Data:', data.message);
+        // Fetch the updated products data
+        const fetchResponse = await fetch(`http://localhost:3000/${storename}/products`);
+        if (!fetchResponse.ok) {
+          throw new Error(`Error fetching updated products. Status: ${fetchResponse.status}`);
+        }
+        const fetchedData = await fetchResponse.json();
+        if (fetchedData.result) {
+          setProductsData(fetchedData.message);
+          localStorage.setItem('productsData', JSON.stringify(fetchedData.message));
+          console.log('Products data updated successfully.');
+        }
+      }
+  
+      // Reset states after successful update
       setUpdatedItems({});
       setNewProducts([]);
-      localStorage.setItem('Products', JSON.stringify(productsData));
-    }
-    catch (error) {
-      console.error('Error during submission:', error);
+    } catch (error) {
+      console.error('Error during submission or fetching updated products:', error);
     }
   };
-
+  
   const openAddProductForm = () => setIsAddProductOpen(true);
   const closeAddProductForm = () => setIsAddProductOpen(false);
 

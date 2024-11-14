@@ -6,7 +6,7 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
     const [formData, setFormData] = useState({
         productName: '',
         price: '',
-        supplierID: '',
+        supplierName: '',
         categoryName: '',
         quantity: '',
         reorderLevel: '',
@@ -84,15 +84,15 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                     <div>
                         <label className="block font-semibold mb-1">Supplier</label>
                         <select
-                            name="supplierID"
-                            value={formData.supplierID}
+                            name="supplierName"
+                            value={formData.supplierName}
                             onChange={handleChange}
                             required
                             className="input input-md input-bordered w-full p-2 border rounded bg-gray-100 mb-2"
                         >
                             <option value="" disabled className="font-semibold text-gray-800">Select Supplier</option>
-                            {suppliers.map((supplier) => (
-                                <option key={supplier.supplierID} value={supplier.supplierID}>{supplier.supplierName}</option>
+                            {suppliers.map((supplier,index) => (
+                                <option key={index} value={supplier.supplierName}>{supplier.supplierName}</option>
                             ))}
                         </select>
                     </div>

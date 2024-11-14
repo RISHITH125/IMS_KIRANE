@@ -447,7 +447,7 @@ app.post("/auth", async (req, res) => {
         }
       }
 
-      productCreate(storeName,pool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiryDate)
+      await productCreate(storename,genpool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiryDate);
       
       // Respond with results
       res.status(201).json({
