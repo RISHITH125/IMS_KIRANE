@@ -8,7 +8,7 @@ const { createStoreDatabase, loginPage, signUpPage, googleAuth, checkStore, logi
 const { dispSupplier } = require("./supplierDisp.js");
 const { purchaseDisp } = require("./purchaseDisp.js");
 const { prodCatDisp } = require("./prodCatDisp.js");
-const { productCreate, categoryAdd, updateProdQuant } = require("./product.js");
+const { productCreate, categoryAdd, updateProdQuant, supplierAdd } = require("./product.js");
 const { categoryNametoID, supplierNametoID } = require("./NameBaseId.js");
 const { OAuth2Client } = require("google-auth-library");
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
@@ -338,8 +338,19 @@ app.post("/auth", async (req, res) => {
     }
   });
 
-
-
+  app.post("/:storename/addSupplier", async (req, res) => {
+    const { storename } = req.params;
+    try {
+      const { supplierName, address, phoneNumbers, emails } = req.body
+      const result = await supplierAdd(genpool, address, supplierName, phoneNumbers, emails)
+      
+      if (result.success) {
+        res.status(200).json(result)
+      }
+    } catch(err) {
+      res.status(404).json({success: false, message: "Couldn't add new supplier details due to database error"} )
+    }
+  });
 
   // Route to fetch supplier information as JSON
   app.get("/:storename/prodCat", async (req, res) => {

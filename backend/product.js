@@ -86,9 +86,10 @@ module.exports = {
                     supplierID, email) 
                     VALUES (?, ?)`, [supplierID, email]);
             }
-    
+            return {success: true, message: "Added new supplier details"}
         } catch (err) {
             console.error("Couldn't insert details of the supplier...", err);
+            return {success: false, message: "Couldn't add new supplier details due to database error"}
         }
     }
 }
