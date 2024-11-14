@@ -1,8 +1,10 @@
 // This is to display in express the purchase Order details
 
 module.exports = {
-    purchaseDisp: async function(pool) {
+    purchaseDisp: async function(pool, storeName) {
         try {
+            console.log(storeName)
+            await pool.query(`USE \`${storeName}\`;`);
             const [rows] = await pool.query(`
                 SELECT 
                     P.orderStatus, 

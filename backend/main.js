@@ -326,16 +326,15 @@ app.post("/auth", async (req, res) => {
     }
   });
 
-  
-
   // Route to fetch purchase order information as JSON
   app.get("/:storename/purchaseOrders", async (req, res) => {
+    const { storename } = req.params;
     try {
-      const [rows] = await purchaseDisp(pool);
-      res.json(rows); // Send JSON response with key-value pairs for each row
+      const [rows] = await purchaseDisp(genpool, storename);
+      res.json({ success: true, data: rows }); // Send JSON response with key-value pairs for each row
     } catch (error) {
       console.error("Error fetching purchase order data:", error);
-      res.status(500).send("Error fetching purchase order data");
+      res.status(500).json({success: false, data: "Error fetching purchase order data"});
     }
   });
 
