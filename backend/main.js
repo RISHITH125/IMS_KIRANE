@@ -612,7 +612,7 @@ let genpool = mysql.createPool({
                 }
 
                 if (supplierID === null) {
-                    return res.status(404).send("Supplier not found");
+                    return res.status(404).json({message:"Supplier not found"});
                 }
 
                 const newProductResult = await productCreate(
