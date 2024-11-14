@@ -8,8 +8,16 @@ module.exports = {
                 [orderStatus, deliveryDate, orderDate, quantity, supplierID, productid] // Added productid here
             );
             console.log('Purchase details added successfully:', rows);
+            return {
+                success: true,
+                message: "Purchase Order details inserted"
+            }
         } catch(err) {
             console.error("Error while inserting purchase...", err);
+            return {
+                success: false,
+                message: "database error while inserting purchase order details"
+            }
         }
     }
 }
