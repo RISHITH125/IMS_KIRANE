@@ -4,15 +4,35 @@ require("dotenv").config();
 const mysql = require("mysql2/promise");
 const cors = require("cors");
 
-const { createStoreDatabase, loginPage, signUpPage, googleAuth, checkStore, loginCreate, AuthPage } = require("./login.js");
+const {
+  createStoreDatabase,
+  loginPage,
+  signUpPage,
+  googleAuth,
+  checkStore,
+  loginCreate,
+  AuthPage,
+} = require("./login.js");
 const { dispSupplier } = require("./supplierDisp.js");
 const { purchaseDisp } = require("./purchaseDisp.js");
 const { prodCatDisp } = require("./prodCatDisp.js");
-const { productCreate, categoryAdd, updateProdQuant, supplierAdd } = require("./product.js");
-const { categoryNametoID, supplierNametoID, productNametoID } = require("./NameBaseId.js");
+const {
+  productCreate,
+  categoryAdd,
+  updateProdQuant,
+  supplierAdd,
+} = require("./product.js");
+const {
+  categoryNametoID,
+  supplierNametoID,
+  productNametoID,
+} = require("./NameBaseId.js");
 const { OAuth2Client } = require("google-auth-library");
 const { addPurchase } = require("./addPurchaseOrder.js");
 const { newProdAdd } = require("./newProdPurchase.js");
+const { salesDisp } = require("./salesDisp.js");
+const { addSales } = require("./addSales.js");
+
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
 
 const client = new OAuth2Client(CLIENT_ID);
@@ -49,11 +69,11 @@ let genpool = mysql.createPool({
         const storeResult = await checkStore(genpool, userDet.storename);
         // console.log(storeResult);
 
-        // // This is done to check if the user proceeded 
+        // // This is done to check if the user proceeded
         if (storeResult.success) {
-        //   genpool = await createStoreDatabase(genpool, storename, username);
-        //   console.log("message: ", result.message);
-        // } else { // This is done to check 
+          //   genpool = await createStoreDatabase(genpool, storename, username);
+          //   console.log("message: ", result.message);
+          // } else { // This is done to check
           genpool = mysql.createPool({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
@@ -61,7 +81,7 @@ let genpool = mysql.createPool({
             database: userDet.storename, // Now use the new database
           });
         } else {
-          res.status(404).json({message: false, data: storeResult.message})
+          res.status(404).json({ message: false, data: storeResult.message });
         }
         // const [rows] = await genpool.query(`
         //   select * from product;`)
@@ -94,66 +114,87 @@ let genpool = mysql.createPool({
   });
 
   // this endpoint is only for signup and auth endpoints
-  app.post('/addStore', async (req, res) => {
+  app.post("/addStore", async (req, res) => {
     try {
       // just check if password is hashed or not
-      const { username, email, password, fullname, phno, storename } = req.body
-      await genpool.query(`
-        UPDATE user SET storename = ? WHERE email = ?`, [storename, email])
-      console.log(username, email, password, fullname, phno, storename)
-      genpool = await createStoreDatabase(genpool, storename, username)
-      const result = await loginCreate(genpool, fullname, password, storename, username, email, phno)
+      const { username, email, password, fullname, phno, storename } = req.body;
+      await genpool.query(
+        `
+        UPDATE user SET storename = ? WHERE email = ?`,
+        [storename, email]
+      );
+      console.log(username, email, password, fullname, phno, storename);
+      genpool = await createStoreDatabase(genpool, storename, username);
+      const result = await loginCreate(
+        genpool,
+        fullname,
+        password,
+        storename,
+        username,
+        email,
+        phno
+      );
       if (result.success) {
         res.status(200).json(result);
       } else {
         res.status(404).json(result);
       }
     } catch (err) {
-      console.error('Error in receiving the details from the signup or google auth page or database is inaccessible..\n', err)
+      console.error(
+        "Error in receiving the details from the signup or google auth page or database is inaccessible..\n",
+        err
+      );
     }
-  })
+  });
 
+  //   ALTER TABLE user MODIFY storename VARCHAR(100) NULL;
+  // dont forget to use this
 
-//   ALTER TABLE user MODIFY storename VARCHAR(100) NULL;
-// dont forget to use this
-
-
-app.post("/auth", async (req, res) => {
+  app.post("/auth", async (req, res) => {
     try {
-        const { token } = req.body; // JWT token from frontend
+      const { token } = req.body; // JWT token from frontend
 
-        // Verify the Google token
-        const ticket = await client.verifyIdToken({
-            idToken: token,
-            audience: CLIENT_ID, // Specify the client ID to verify the token
+      // Verify the Google token
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: CLIENT_ID, // Specify the client ID to verify the token
+      });
+
+      const payload = ticket.getPayload();
+      console.log("User info:", payload);
+
+      // Retrieve the 'sub' claim (Google user ID)
+      const sub_claim = payload.sub;
+
+      // Handle user authentication or creation in the database
+      const result = await googleAuth(
+        genpool,
+        payload.name,
+        payload.email,
+        sub_claim
+      );
+      const ressend = await AuthPage(genpool, payload.email, sub_claim);
+
+      if (result.success && ressend.success) {
+        res.status(200).json({
+          message: result.message,
+          data: payload,
+          userdet: ressend.data,
         });
-
-        const payload = ticket.getPayload();
-        console.log("User info:", payload);
-
-        // Retrieve the 'sub' claim (Google user ID)
-        const sub_claim = payload.sub;
-
-        // Handle user authentication or creation in the database
-        const result = await googleAuth(genpool, payload.name, payload.email, sub_claim);
-        const ressend = await AuthPage(genpool, payload.email, sub_claim);
-
-        if (result.success && ressend.success) {
-            res.status(200).json({ message: result.message, data: payload , userdet: ressend.data});
-        } else {
-            res.status(400).json({ message: result.message });
-        }
+      } else {
+        res.status(400).json({ message: result.message });
+      }
     } catch (error) {
-        console.error("Error during Google Authentication:", error);
-        res.status(500).json({ message: "Error during Google Authentication" });
+      console.error("Error during Google Authentication:", error);
+      res.status(500).json({ message: "Error during Google Authentication" });
     }
-});
+  });
 
   // Route to fetch all product data
   app.get("/:storename/products", async (req, res) => {
     const { storename } = req.params;
     console.log("Store name:", storename); // Log the storename from the request
-  
+
     try {
       // Fetch products for the given storename
       const rows = await prodCatDisp(genpool, storename); // Use the correct function call
@@ -177,7 +218,7 @@ app.post("/auth", async (req, res) => {
       });
     }
   });
-  
+
   // Route to add Product details into table
   app.post("/:storename/addProduct", async (req, res) => {
     try {
@@ -321,10 +362,12 @@ app.post("/auth", async (req, res) => {
     const { storename } = req.params;
     try {
       const rows = await dispSupplier(genpool, storename); // Call to fetch supplier information with JOINs
-      res.json({success: true, data: rows}); // Send JSON response with key-value pairs for each row
+      res.json({ success: true, data: rows }); // Send JSON response with key-value pairs for each row
     } catch (error) {
       console.error("Error fetching supplier data:", error);
-      res.status(500).json({success:false, data: "Error fetching supplier data"});
+      res
+        .status(500)
+        .json({ success: false, data: "Error fetching supplier data" });
     }
   });
 
@@ -336,84 +379,145 @@ app.post("/auth", async (req, res) => {
       res.json({ success: true, data: rows }); // Send JSON response with key-value pairs for each row
     } catch (error) {
       console.error("Error fetching purchase order data:", error);
-      res.status(500).json({success: false, data: "Error fetching purchase order data"});
+      res
+        .status(500)
+        .json({ success: false, data: "Error fetching purchase order data" });
     }
   });
-
-  
 
   app.post("/:storename/addPurchase", async (req, res) => {
     const { storename } = req.params;
     try {
-      const [rows] = req.body
+      const [rows] = req.body;
       let result;
-      let length = rows.length
+      let length = rows.length;
       for (jsonContent in rows) {
-        const { purchaseOrderid, deliveryDate, orderDate, quantity, supplierID, supplierName, productid, productName, price, categoryName, reorderLevel, expiry, isNewProduct, orderStatus } = jsonContent
-        const supplierid = supplierNametoID(genpool, supplierName, storename)
-        const productID = productNametoID(genpool, productName, storename)
-        if(!isNewProduct) {
-          result = await addPurchase(genpool, storename, orderStatus, deliveryDate, orderDate, quantity, supplierid, productID) 
+        const {
+          purchaseOrderid,
+          deliveryDate,
+          orderDate,
+          quantity,
+          supplierID,
+          supplierName,
+          productid,
+          productName,
+          price,
+          categoryName,
+          reorderLevel,
+          expiry,
+          isNewProduct,
+          orderStatus,
+        } = jsonContent;
+        const supplierid = supplierNametoID(genpool, supplierName, storename);
+        const productID = productNametoID(genpool, productName, storename);
+        if (!isNewProduct) {
+          result = await addPurchase(
+            genpool,
+            storename,
+            orderStatus,
+            deliveryDate,
+            orderDate,
+            quantity,
+            supplierid,
+            productID
+          );
         } else {
-          const newResult = await newProdAdd(genpool, storename, productid, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierName)
-          if(!newResult.success) {
-            console.log("Error adding new product purchase to newProductPurchase table")
-            res.status(404).json({success: false, message: "Couldn't add new purchase details due to database error"} )
+          const newResult = await newProdAdd(
+            genpool,
+            storename,
+            productid,
+            productName,
+            price,
+            categoryName,
+            reorderLevel,
+            expiry,
+            orderDate,
+            quantity,
+            supplierName
+          );
+          if (!newResult.success) {
+            console.log(
+              "Error adding new product purchase to newProductPurchase table"
+            );
+            res.status(404).json({
+              success: false,
+              message:
+                "Couldn't add new purchase details due to database error",
+            });
           }
         }
-        if(result.success) {
-          length -= 1
-        } 
+        if (result.success) {
+          length -= 1;
+        }
       }
-      if(number === 0) {
-        res.status(200).json(result)
+      if (number === 0) {
+        res.status(200).json(result);
       }
     } catch (err) {
-      res.status(404).json({success: false, message: "Couldn't add new purchase details due to database error"} )
+      res.status(404).json({
+        success: false,
+        message: "Couldn't add new purchase details due to database error",
+      });
     }
   });
 
   app.post("/:storename/addSupplier", async (req, res) => {
     const { storename } = req.params;
-  
+
     try {
       // Expecting suppliers to be in the 'newSuppliers' field of the request body
       const suppliers = req.body.newSuppliers;
-  
+
       // Check if suppliers is an array
       if (!Array.isArray(suppliers)) {
-        return res.status(400).json({ success: false, message: "Suppliers should be an array" });
+        return res
+          .status(400)
+          .json({ success: false, message: "Suppliers should be an array" });
       }
-  
+
       // Create an array of promises to add each supplier
       const promises = suppliers.map(async (supplier) => {
         const { supplierName, address, phoneNumbers, emails } = supplier;
         console.log(supplierName, address, phoneNumbers, emails);
-        
+
         // Assuming supplierAdd is a function that handles the database insertion
-        const result = await supplierAdd(genpool, storename, address, supplierName, phoneNumbers, emails);
-        
+        const result = await supplierAdd(
+          genpool,
+          storename,
+          address,
+          supplierName,
+          phoneNumbers,
+          emails
+        );
+
         return result;
       });
-  
+
       // Wait for all the suppliers to be processed
       const results = await Promise.all(promises);
-  
+
       // Check if all suppliers were added successfully
-      const allSuccess = results.every(result => result.success);
-  
+      const allSuccess = results.every((result) => result.success);
+
       if (allSuccess) {
-        return res.status(200).json({ success: true, message: "Suppliers added successfully." });
+        return res
+          .status(200)
+          .json({ success: true, message: "Suppliers added successfully." });
       } else {
-        return res.status(400).json({ success: false, message: "Some suppliers couldn't be added." });
+        return res.status(400).json({
+          success: false,
+          message: "Some suppliers couldn't be added.",
+        });
       }
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ success: false, message: "Couldn't add new supplier details due to a database error." });
+      return res.status(500).json({
+        success: false,
+        message: "Couldn't add new supplier details due to a database error.",
+      });
     }
-});
+  });
 
-  
   // Route to fetch supplier information as JSON
   app.get("/:storename/prodCat", async (req, res) => {
     try {
@@ -426,37 +530,40 @@ app.post("/auth", async (req, res) => {
   });
 
   // Start the server
-  
-  
-  //handle new products and updated items 
+
+  //handle new products and updated items
   app.post("/:storename/newupdateprods", async (req, res) => {
     try {
       const { updatedItems, newProducts, storename } = req.body;
-      
+
       if (!updatedItems && !newProducts) {
         return res.status(400).json({ message: "No data provided" });
       }
-  
 
       const updateResults = [];
       const newProductResults = [];
-      
+
       // Handle updatedItems
       if (updatedItems && updatedItems.length > 0) {
         for (const item of updatedItems) {
           const { productid, quantity } = item;
-          
+
           if (!productid || quantity == null) {
-            return res
-            .status(400)
-            .json({ message: "Missing productid or quantity in updatedItems" });
+            return res.status(400).json({
+              message: "Missing productid or quantity in updatedItems",
+            });
           }
-          
-          const updateResult = await updateProdQuant(genpool, productid, quantity,storename);
+
+          const updateResult = await updateProdQuant(
+            genpool,
+            productid,
+            quantity,
+            storename
+          );
           updateResults.push({ productid, quantity, updateResult });
         }
       }
-      
+
       // Handle newProducts
       if (newProducts && newProducts.length > 0) {
         for (const product of newProducts) {
@@ -469,7 +576,7 @@ app.post("/auth", async (req, res) => {
             reorderLevel,
             expiry,
           } = product;
-          
+
           if (
             !productName ||
             price == null ||
@@ -483,18 +590,30 @@ app.post("/auth", async (req, res) => {
               message: "Missing required fields in newProducts",
             });
           }
-          
-          let categoryID = await categoryNametoID(genpool, categoryName,storename);
-          const supplierID = await supplierNametoID(genpool, supplierName,storename);
-          
+
+          let categoryID = await categoryNametoID(
+            genpool,
+            categoryName,
+            storename
+          );
+          const supplierID = await supplierNametoID(
+            genpool,
+            supplierName,
+            storename
+          );
+
           if (categoryID === null) {
-            await categoryAdd(genpool, null, categoryName,storename);
-            categoryID = await categoryNametoID(genpool, categoryName,storename);
+            await categoryAdd(genpool, null, categoryName, storename);
+            categoryID = await categoryNametoID(
+              genpool,
+              categoryName,
+              storename
+            );
           }
           if (supplierID === null) {
             return res.status(404).send("Supplier not found");
           }
-          
+
           const newProductResult = await productCreate(
             storename,
             genpool,
@@ -506,7 +625,7 @@ app.post("/auth", async (req, res) => {
             reorderLevel,
             new Date(expiry) // Ensure expiry is a Date object
           );
-          
+
           newProductResults.push({
             productName,
             price,
@@ -520,18 +639,60 @@ app.post("/auth", async (req, res) => {
         }
       }
 
-      await productCreate(storename,genpool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiryDate);
-      
+      await productCreate(
+        storename,
+        genpool,
+        productName,
+        price,
+        supplierID,
+        categoryID,
+        quantity,
+        reorderLevel,
+        expiryDate
+      );
+
       // Respond with results
       res.status(201).json({
         result: true,
-        message:"Products updated and/or added successfully",
+        message: "Products updated and/or added successfully",
         // updatedItems: updateResults,
         // newProducts: newProductResults,
       });
     } catch (error) {
       console.error("Error processing /newupdateprods:", error);
       res.status(500).json({ message: "Server error", error });
+    }
+  });
+
+  app.get("/:storename/sales", async (req, res) => {
+    const { storename } = req.params;
+
+    const result = await salesDisp(genpool, storename);
+    console.log(result)
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(500).json(result);
+    }
+  });
+
+  app.post("/:storename/sales", async (req, res) => {
+    const { storename } = req.params;
+    const { productName, quantity, price, paymentMethod } = req.body;
+
+    const result = await addSales(
+      pool,
+      productName,
+      quantity,
+      price,
+      paymentMethod,
+      storename
+    );
+
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(500).json(result);
     }
   });
 
