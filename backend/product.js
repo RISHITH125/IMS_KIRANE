@@ -63,34 +63,33 @@ module.exports = {
         }
     },
 
-    supplierAdd: async function(pool, storename, address, supplierName, phno, email) {
+    supplierAdd: async function(pool, storeName, address, supplierName, phno, email) {
         try {
-            // Insert into supplier table
-            await pool.query(`USE \`${storename}\`;`);
-            const supplier = await pool.query(`
-                INSERT IGNORE INTO supplier (
-                address, supplierName) 
+            await pool.query(`USE \`${storeName}\`;`);
+            const result = await pool.query(`
+                INSERT INTO supplier (address, supplierName) 
                 VALUES (?, ?)`, [address, supplierName]);
-    
+
+            const supplierID = result.insertId; // Get the newly inserted supplier ID
+
             // Insert phone numbers into supplier_phno table
-            // for (const phno of phnoArray) {
+            for (const number of phno) {
                 await pool.query(`
-                    INSERT IGNORE INTO supplier_phno (
-                    supplierID, phno) 
-                    VALUES (?, ?)`, [supplier.supplierID, phno]);
-            // }
-    
+                    INSERT INTO supplier_phno (supplierID, phno) 
+                    VALUES (?, ?)`, [supplierID, number]);
+            }
+
             // Insert emails into supplier_email table
-            // for (const email of emailArray) {
+            for (const emailAddress of email) {
                 await pool.query(`
-                    INSERT IGNORE INTO supplier_email (
-                    supplierID, email) 
-                    VALUES (?, ?)`, [supplier.supplierID, email]);
-            // }
+                    INSERT INTO supplier_email (supplierID, email) 
+                    VALUES (?, ?)`, [supplierID, emailAddress]);
+            }
             return {success: true, message: "Added new supplier details"}
         } catch (err) {
             console.error("Couldn't insert details of the supplier...", err);
             return {success: false, message: "Couldn't add new supplier details due to database error"}
         }
     }
+
 }

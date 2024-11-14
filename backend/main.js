@@ -534,135 +534,124 @@ let genpool = mysql.createPool({
   //handle new products and updated items
   app.post("/:storename/newupdateprods", async (req, res) => {
     try {
-      const { updatedItems, newProducts, storename } = req.body;
+        const { updatedItems, newProducts, storename } = req.body;
 
-      if (!updatedItems && !newProducts) {
-        return res.status(400).json({ message: "No data provided" });
-      }
-
-      const updateResults = [];
-      const newProductResults = [];
-
-      // Handle updatedItems
-      if (updatedItems && updatedItems.length > 0) {
-        for (const item of updatedItems) {
-          const { productid, quantity } = item;
-
-          if (!productid || quantity == null) {
-            return res.status(400).json({
-              message: "Missing productid or quantity in updatedItems",
-            });
-          }
-
-          const updateResult = await updateProdQuant(
-            genpool,
-            productid,
-            quantity,
-            storename
-          );
-          updateResults.push({ productid, quantity, updateResult });
+        if (!updatedItems && !newProducts) {
+            return res.status(400).json({ message: "No data provided" });
         }
-      }
 
-      // Handle newProducts
-      if (newProducts && newProducts.length > 0) {
-        for (const product of newProducts) {
-          const {
-            productName,
-            price,
-            supplierName,
-            categoryName,
-            quantity,
-            reorderLevel,
-            expiry,
-          } = product;
+        const updateResults = [];
+        const newProductResults = [];
 
-          if (
-            !productName ||
-            price == null ||
-            !supplierName ||
-            !categoryName ||
-            quantity == null ||
-            reorderLevel == null ||
-            !expiry
-          ) {
-            return res.status(400).json({
-              message: "Missing required fields in newProducts",
-            });
-          }
+        // Handle updatedItems
+        if (updatedItems && updatedItems.length > 0) {
+            for (const item of updatedItems) {
+                const { productid, quantity } = item;
 
-          let categoryID = await categoryNametoID(
-            genpool,
-            categoryName,
-            storename
-          );
-          const supplierID = await supplierNametoID(
-            genpool,
-            supplierName,
-            storename
-          );
+                if (!productid || quantity == null) {
+                    return res.status(400).json({
+                        message: "Missing productid or quantity in updatedItems",
+                    });
+                }
 
-          if (categoryID === null) {
-            await categoryAdd(genpool, null, categoryName, storename);
-            categoryID = await categoryNametoID(
-              genpool,
-              categoryName,
-              storename
-            );
-          }
-          if (supplierID === null) {
-            return res.status(404).send("Supplier not found");
-          }
-
-          const newProductResult = await productCreate(
-            storename,
-            genpool,
-            productName,
-            price,
-            supplierID,
-            categoryID,
-            quantity,
-            reorderLevel,
-            new Date(expiry) // Ensure expiry is a Date object
-          );
-
-          newProductResults.push({
-            productName,
-            price,
-            supplierName,
-            categoryName,
-            quantity,
-            reorderLevel,
-            expiry,
-            newProductResult,
-          });
+                const updateResult = await updateProdQuant(
+                    genpool,
+                    productid,
+                    quantity,
+                    storename
+                );
+                updateResults.push({ productid, quantity, updateResult });
+            }
         }
-      }
 
-      await productCreate(
-        storename,
-        genpool,
-        productName,
-        price,
-        supplierID,
-        categoryID,
-        quantity,
-        reorderLevel,
-        expiryDate
-      );
+        // Handle newProducts
+        if (newProducts && newProducts.length > 0) {
+            for (const product of newProducts) {
+                const {
+                    productName,
+                    price,
+                    supplierName,
+                    categoryName,
+                    quantity,
+                    reorderLevel,
+                    expiry,
+                } = product;
 
-      // Respond with results
-      res.status(201).json({
-        result: true,
-        message: "Products updated and/or added successfully",
-        // updatedItems: updateResults,
-        // newProducts: newProductResults,
-      });
+                if (
+                    !productName ||
+                    price == null ||
+                    !supplierName ||
+                    !categoryName ||
+                    quantity == null ||
+                    reorderLevel == null ||
+                    !expiry
+                ) {
+                    return res.status(400).json({
+                        message: "Missing required fields in newProducts",
+                    });
+                }
+
+                let categoryID = await categoryNametoID(
+                    genpool,
+                    categoryName,
+                    storename
+                );
+                const supplierID = await supplierNametoID(
+                    genpool,
+                    supplierName,
+                    storename
+                );
+
+                if (categoryID === null) {
+                    await categoryAdd(genpool, null, categoryName, storename);
+                    categoryID = await categoryNametoID(
+                        genpool,
+                        categoryName,
+                        storename
+                    );
+                }
+
+                if (supplierID === null) {
+                    return res.status(404).send("Supplier not found");
+                }
+
+                const newProductResult = await productCreate(
+                    storename,
+                    genpool,
+                    productName,
+                    price,
+                    supplierID,
+                    categoryID,
+                    quantity,
+                    reorderLevel,
+                    new Date(expiry) // Ensure expiry is a Date object
+                );
+
+                newProductResults.push({
+                    productName,
+                    price,
+                    supplierName,
+                    categoryName,
+                    quantity,
+                    reorderLevel,
+                    expiry,
+                    newProductResult,
+                });
+            }
+        }
+
+        // Respond with results
+        res.status(201).json({
+            result: true,
+            message: "Products updated and/or added successfully",
+            updatedItems: updateResults,
+            newProducts: newProductResults,
+        });
     } catch (error) {
-      console.error("Error processing /newupdateprods:", error);
-      res.status(500).json({ message: "Server error", error });
+        console.error("Error processing /newupdateprods:", error);
+        res.status(500).json({ message: "Server error", error });
     }
-  });
+});
 
   app.get("/:storename/sales", async (req, res) => {
     const { storename } = req.params;
