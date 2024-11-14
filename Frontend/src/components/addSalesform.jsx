@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-
+import { useUser } from '../context/UserContext';
 const AddSalesForm = () => {
+  const { profile } = useUser();
+  const storename = profile?.storename;
   const [formData, setFormData] = useState({
     productName: '',
     quantitySold: '',
@@ -16,7 +18,7 @@ const AddSalesForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await fetch(`/api/${storename}/sales`, {
+    const response = await fetch(`http://localhost:3000/${storename}/sales`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -90,7 +90,7 @@ const Suppliers = () => {
         localStorage.setItem('orders', JSON.stringify(orders));
     }, [orders]);
 
-
+    const maxOrderID = Math.max(...orders.map(o => o.purchaseOrderid), 0);
     const toggleSupplier = (supplierID) => {
         setExpandedSuppliers((prev) => ({
             ...prev,
@@ -115,8 +115,7 @@ const Suppliers = () => {
     // const getSupplierOrders = (supplierID) => orders.filter(order => order.supplierID === supplierID);
 
     // Calculate the max order ID
-    // Calculate the max order ID
-    const maxOrderID = Math.max(...(Array.isArray(orders) ? orders.map(o => o.purchaseOrderid) : []), 0);
+
 
     const groupOrdersByPurchaseOrder = (orders) => {
         return orders.reduce((grouped, order) => {
@@ -205,40 +204,6 @@ const Suppliers = () => {
         }
     };
 
-
-    useEffect(() => {
-        const fetchOrders = async () => {
-            storename = profile?.storename;
-            if (!storename) {
-                console.error("Store name is not available");
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const response = await fetch(`/${storename}/purchaseOrders`);
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    setOrders(data.data);
-                    localStorage.setItem('orders', JSON.stringify(data.data)); // Save to localStorage
-                } else {
-                    setError("Failed to fetch orders");
-                }
-            } catch (error) {
-                console.error("Error fetching purchase orders:", error);
-            }
-        };
-        fetchOrders();
-    }, [storename]); // Dependency array includes storename
-
-    // Sync orders to localStorage whenever the state changes
-    useEffect(() => {
-        localStorage.setItem('orders', JSON.stringify(orders));
-    }, [orders]);
-
-
-
     const handleFilter = (filteredData) => {
         setFilteredOrders(filteredData);
         // console.log('filteredData:-', filteredData);
@@ -273,7 +238,7 @@ const Suppliers = () => {
                             {/* <div className="">
                                 {suppliers.map((supplier,index) => {
                                     // Check if this supplier has any orders in filteredOrders
-                                    const supplierHasFilteredOrders = filteredOrders.some(order => order.supplierName === supplier.supplierName);
+                                    const supplierHasFilteredOrders = filteredOrders.some(order => order.supplierID === supplier.supplierID);
 
                                     // Only display the supplier and their orders if they have matching orders in filteredOrders
                                     if (filteredOrders.length > 0 && !supplierHasFilteredOrders) {

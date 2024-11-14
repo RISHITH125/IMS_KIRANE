@@ -105,8 +105,8 @@ module.exports = {
         [address, supplierName]
       );
 
-      const supplierID = result.insertId; // Get the newly inserted supplier ID
-
+      const supplierID = result[0].insertId; // Get the newly inserted supplier ID
+      console.log("Supplier ID: ", supplierID);
       // Insert phone numbers into supplier_phno table
       await pool.query(
         `
