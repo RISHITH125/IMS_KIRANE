@@ -163,7 +163,7 @@ const Suppliers = () => {
                                 </button>
                             </div>
 
-                            <div className="">
+                            {/* <div className="">
                                 {suppliers.map((supplier,index) => {
                                     // Check if this supplier has any orders in filteredOrders
                                     const supplierHasFilteredOrders = filteredOrders.some(order => order.supplierName === supplier.supplierName);
@@ -208,6 +208,88 @@ const Suppliers = () => {
 
                                                                     </div>
 
+                                                                    {expandedOrders[orderID] && (
+                                                                        <div className="mt-2">
+                                                                            <table className="w-full border-collapse bg-white">
+                                                                                <thead>
+                                                                                    <tr className="border-b-2 border-gray-200 bg-gray-100">
+                                                                                        <th className="p-2 text-left font-semibold">Product Name</th>
+                                                                                        <th className="p-2 text-left font-semibold">Quantity</th>
+                                                                                        <th className="p-2 text-left font-semibold">Order Date</th>
+                                                                                        <th className="p-2 text-left font-semibold">Delivery Date</th>
+                                                                                        <th className="p-2 text-left font-semibold">Status</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    {ordersForThisGroup.map((order, index) => (
+                                                                                        <tr key={index} className="border-b border-gray-200">
+                                                                                            <td className="p-2 text-gray-700">{order.productName}</td>
+                                                                                            <td className="p-2 text-gray-700">{order.quantity}</td>
+                                                                                            <td className="p-2 text-gray-700">{order.orderDate}</td>
+                                                                                            <td className="p-2 text-gray-700">{order.deliveryDate}</td>
+                                                                                            <td className="p-2 text-gray-700">{order.orderStatus ? "Completed" : "Pending"}</td>
+                                                                                        </tr>
+                                                                                    ))}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+
+                            </div> */}
+
+<div className="">
+    {(Array.isArray(suppliers) ? suppliers : []).map((supplier, index) => {
+        // Check if this supplier has any orders in filteredOrders
+        const supplierHasFilteredOrders = filteredOrders.some(order => order.supplierName === supplier.supplierName);
+
+        // Only display the supplier and their orders if they have matching orders in filteredOrders
+        if (filteredOrders.length > 0 && !supplierHasFilteredOrders) {
+            return null; // Skip rendering this supplier if no orders are filtered for them
+        }
+
+        return (
+            <div key={index} className="mb-6 bg-white p-6 rounded-lg shadow-lg">
+                <div
+                    onClick={() => toggleSupplier(supplier.supplierID)}
+                    className="cursor-pointer text-xl font-semibold text-gray-700 flex items-center"
+                >
+                    <span>{supplier.supplierName} </span>
+                    <Menu className='ml-2' />
+                </div>
+
+                                            {expandedSuppliers[supplier.supplierID] && (
+                                                <div className="mt-4 space-y-4">
+                                                    {Object.keys(groupedOrders).map((orderID) => {
+                                                        const ordersForThisGroup = groupedOrders[orderID];
+                                                        const isForThisSupplier = ordersForThisGroup.some(order => order.supplierID === supplier.supplierID);
+                                                    
+                                                        if (isForThisSupplier) {
+                                                            return (
+                                                                <div key={orderID} className="border p-4 rounded-lg bg-gray-50 shadow-sm">
+                                                                    <div
+                                                                        onClick={() => toggleOrder(orderID)}
+                                                                        className="cursor-pointer text-lg font-semibold text-gray-600 flex items-center"
+                                                                    >
+                                                                        Order ID: {orderID} (Status: {ordersForThisGroup[0].orderStatus ? <span className='text-green-500'>Completed</span> : <span className='text-red-500'>Pending</span>})
+                                                                        <span>{!expandedOrders[orderID] ? <ArrowBigDownDashIcon className='ml-5' /> : <ArrowBigUpDashIcon className='ml-5' />}</span>
+                                                            
+                                                                        <button
+                                                                            onClick={() => markOrderAsCompleted(parseInt(orderID))}
+                                                                            className="bg-green-500 text-white py-1 px-2 rounded font-bold flex items-center ml-auto"
+                                                                        >
+                                                                            Order Received <CheckSquare className='ml-1' />
+                                                                        </button>
+                                                                    </div>
+                                                            
                                                                     {expandedOrders[orderID] && (
                                                                         <div className="mt-2">
                                                                             <table className="w-full border-collapse bg-white">

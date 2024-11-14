@@ -169,7 +169,7 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
                             </div>
 
                             {/* Product Selection */}
-                            {!formData[currentProductIndex].isNewProduct && (
+                            {/* {!formData[currentProductIndex].isNewProduct && (
                                 <div>
                                     <label className="block font-semibold mb-1">Product</label>
                                     <select
@@ -200,6 +200,45 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
                                     >
                                         <option value="" disabled>Select Product</option>
                                         {products.map((product) => (
+                                            <option key={product.productid} value={product.productid}>
+                                                {product.productName}
+                                            </option>
+                                        ))}
+                                        <option value="new">Add New Product</option>
+                                    </select>
+                                </div>
+                                                        )} */}
+                            {!formData[currentProductIndex].isNewProduct && (
+                                <div>
+                                    <label className="block font-semibold mb-1">Product</label>
+                                    <select
+                                        name="productid"
+                                        value={formData[currentProductIndex].productid}
+                                        onChange={(e) => {
+                                            const isNew = e.target.value === 'new';
+                                            const selectedProd = products.find(
+                                                (p) => p.productid === parseInt(e.target.value)
+                                            );
+                                            setFormData((prevData) => {
+                                                const updatedData = [...prevData];
+                                                updatedData[currentProductIndex] = {
+                                                    ...updatedData[currentProductIndex],
+                                                    isNewProduct: isNew,
+                                                    productid: isNew ? '' : selectedProd?.productid,
+                                                    productName: isNew ? '' : selectedProd?.productName,
+                                                    categoryName: isNew ? '' : selectedProd?.categoryName,
+                                                    reorderLevel: isNew ? '' : selectedProd?.reorderLevel,
+                                                    price: isNew ? '' : selectedProd?.price,
+                                                    expiry: isNew ? '' : selectedProd?.expiry,
+                                                };
+                                                return updatedData;
+                                            });
+                                        }}
+                                        required
+                                        className="input input-md input-bordered w-full p-2 border rounded bg-gray-100"
+                                    >
+                                        <option value="" disabled>Select Product</option>
+                                        {(Array.isArray(products) ? products : []).map((product) => (
                                             <option key={product.productid} value={product.productid}>
                                                 {product.productName}
                                             </option>

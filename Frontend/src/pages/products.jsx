@@ -64,13 +64,49 @@ const Categories = () => {
   // console.log('productsData:', productsData);
   // console.log('filteredProducts:', filteredProducts);
 
-  const groupedProducts = (filteredProducts.length > 0 ? filteredProducts : productsData).reduce((acc, product) => {
-    if (!acc[product.categoryName]) {
-      acc[product.categoryName] = [];
+  // const groupedProducts = (filteredProducts.length > 0 ? filteredProducts : productsData).reduce((acc, product) => {
+  //   if (!acc[product.categoryName]) {
+  //     acc[product.categoryName] = [];
+  //   }
+  //   acc[product.categoryName].push(product);
+  //   return acc;
+  // }, {});
+
+  // const groupedProducts = (Array.isArray(filteredProducts) && filteredProducts.length > 0 ? filteredProducts : productsData || []).reduce((acc, product) => {
+  //   // Check if product is an object and has a categoryName
+  //   if (typeof product === 'object' && product !== null && product.categoryName) {
+  //       if (!acc[product.categoryName]) {
+  //           acc[product.categoryName] = [];
+  //       }
+  //       acc[product.categoryName].push(product);
+  //   } else {
+  //       console.warn("Invalid product or missing categoryName:", product);
+  //   }
+  //   return acc;
+  // }, {});
+
+  // Ensure filteredProducts and productsData are defined and are arrays
+  const productsToUse = Array.isArray(filteredProducts) && filteredProducts.length > 0 ? filteredProducts : Array.isArray(productsData) ? productsData : [];
+
+// Log the products to use for debugging
+  console.log("Products to use for grouping:", productsToUse);
+
+// Group products by categoryName
+  const groupedProducts = productsToUse.reduce((acc, product) => {
+    // Check if product is an object and has a categoryName
+    if (typeof product === 'object' && product !== null && product.categoryName) {
+        if (!acc[product.categoryName]) {
+            acc[product.categoryName] = [];
+        }
+        acc[product.categoryName].push(product);
+    } else {
+        console.warn("Invalid product or missing categoryName:", product);
     }
-    acc[product.categoryName].push(product);
     return acc;
-  }, {});
+}, {});
+
+// Log the grouped products for debugging
+  console.log("Grouped Products:", groupedProducts);
 
   const toggleCategory = (categoryName) => {
     setOpenCategories((prevOpenCategories) => ({
