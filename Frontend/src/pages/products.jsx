@@ -242,6 +242,7 @@ const Categories = () => {
                                   <td className="p-2 text-gray-700">{product.dateadded}</td>
                                   <td className="p-2 text-gray-700">
                                     <div className="flex items-center">
+                                      {product.productid !== "NewProduct" &&(
                                       <input
                                         type="number"
                                         min="1"
@@ -251,7 +252,8 @@ const Categories = () => {
                                         onChange={(e) => handleQuantityInputChange(product.productid, e.target.value)}
                                         disabled={product.productid === "NewProduct"} // Disable for new products
                                       />
-
+                                      )
+                                      }
                                       {/* Disable the buttons if it's a new product */}
                                       {product.productid !== "NewProduct" && (
                                         <>
