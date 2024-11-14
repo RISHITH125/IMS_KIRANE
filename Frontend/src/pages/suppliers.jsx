@@ -100,7 +100,8 @@ const Suppliers = () => {
             };
     
             // Send POST request
-            const response = await fetch('/addSupplier', {
+            const storename=profile?.storename
+            const response = await fetch(`http://localhost:3000/${storename}/addSupplier`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

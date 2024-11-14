@@ -5,29 +5,13 @@ const AddSupplierForm = ({ onClose, onAddSupplier }) => {
     const [formData, setFormData] = useState({
         supplierName: '',
         address: '',
-        phoneNumbers: [''],
-        emails: ['']
+        phoneNumber: '',
+        email: ''
     });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({ ...prevData, [name]: value }));
-    };
-
-    const handleMultiInputChange = (index, value, type) => {
-        setFormData((prevData) => {
-            const updatedArray = [...prevData[type]];
-            updatedArray[index] = value;
-            return { ...prevData, [type]: updatedArray };
-        });
-    };
-
-    const addPhoneNumberField = () => {
-        setFormData((prevData) => ({ ...prevData, phoneNumbers: [...prevData.phoneNumbers, ''] }));
-    };
-
-    const addEmailField = () => {
-        setFormData((prevData) => ({ ...prevData, emails: [...prevData.emails, ''] }));
     };
 
     const handleSubmit = (e) => {
@@ -72,43 +56,29 @@ const AddSupplierForm = ({ onClose, onAddSupplier }) => {
                     </div>
 
                     <div>
-                        <label className="block font-semibold mb-1">Phone Numbers</label>
-                        {formData.phoneNumbers.map((phone, index) => (
-                            <div key={index} className="flex items-center space-x-2 mb-2">
-                                <input
-                                    type="tel"
-                                    value={phone}
-                                    onChange={(e) => handleMultiInputChange(index, e.target.value, 'phoneNumbers')}
-                                    placeholder="Enter phone number"
-                                    className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
-                                />
-                                {index === formData.phoneNumbers.length - 1 && (
-                                    <button type="button" onClick={addPhoneNumberField} className="text-blue-500 font-bold">
-                                        + Add
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                        <label className="block font-semibold mb-1">Phone Number</label>
+                        <input
+                            type="tel"
+                            name="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleChange}
+                            required
+                            placeholder="Enter phone number"
+                            className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
+                        />
                     </div>
 
                     <div>
-                        <label className="block font-semibold mb-1">Email Addresses</label>
-                        {formData.emails.map((email, index) => (
-                            <div key={index} className="flex items-center space-x-2 mb-2">
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => handleMultiInputChange(index, e.target.value, 'emails')}
-                                    placeholder="Enter email address"
-                                    className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
-                                />
-                                {index === formData.emails.length - 1 && (
-                                    <button type="button" onClick={addEmailField} className="text-blue-500 font-bold">
-                                        + Add
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                        <label className="block font-semibold mb-1">Email Address</label>
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                            placeholder="Enter email address"
+                            className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
+                        />
                     </div>
 
                     <button type="submit" className="btn border-none w-full bg-blue-500 text-white py-2 rounded font-bold">

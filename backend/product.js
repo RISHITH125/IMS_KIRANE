@@ -63,30 +63,30 @@ module.exports = {
         }
     },
 
-    supplierAdd: async function(pool, storename, address, supplierName, phnoArray, emailArray) {
+    supplierAdd: async function(pool, storename, address, supplierName, phno, email) {
         try {
             // Insert into supplier table
-            await pool.query(`USE \`${storeName}\`;`);
-            await pool.query(`
+            await pool.query(`USE \`${storename}\`;`);
+            const supplier = await pool.query(`
                 INSERT IGNORE INTO supplier (
                 address, supplierName) 
                 VALUES (?, ?)`, [address, supplierName]);
     
             // Insert phone numbers into supplier_phno table
-            for (const phno of phnoArray) {
+            // for (const phno of phnoArray) {
                 await pool.query(`
                     INSERT IGNORE INTO supplier_phno (
                     supplierID, phno) 
-                    VALUES (?, ?)`, [supplierID, phno]);
-            }
+                    VALUES (?, ?)`, [supplier.supplierID, phno]);
+            // }
     
             // Insert emails into supplier_email table
-            for (const email of emailArray) {
+            // for (const email of emailArray) {
                 await pool.query(`
                     INSERT IGNORE INTO supplier_email (
                     supplierID, email) 
-                    VALUES (?, ?)`, [supplierID, email]);
-            }
+                    VALUES (?, ?)`, [supplier.supplierID, email]);
+            // }
             return {success: true, message: "Added new supplier details"}
         } catch (err) {
             console.error("Couldn't insert details of the supplier...", err);
