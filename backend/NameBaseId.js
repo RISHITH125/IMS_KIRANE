@@ -13,7 +13,7 @@ module.exports = {
         }
     },
 
-    supplierNametoID: async function(pool, supplierName,storeName) {
+    supplierNametoID: async function(pool, supplierName, storeName) {
         try {
             await pool.query(`USE \`${storeName}\`;`);
             const [rows] = await pool.query(`
@@ -22,6 +22,20 @@ module.exports = {
 
             // Check if a row was returned and return the supplierID
             return rows.length > 0 ? rows[0].supplierID : null; // Return the ID or null if not found
+        } catch (err) {
+            console.error('Error fetching supplier ID:', err);
+        }
+    }, 
+
+    productNametoID: async function(pool, productName, storeName) {
+        try {
+            await pool.query(`USE \`${storeName}\`;`);
+            const [rows] = await pool.query(`
+                SELECT productid FROM product WHERE productName = ?
+            `, [productName]);
+
+            // Check if a row was returned and return the supplierID
+            return rows.length > 0 ? rows[0].productid : null; // Return the ID or null if not found
         } catch (err) {
             console.error('Error fetching supplier ID:', err);
         }

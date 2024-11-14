@@ -108,7 +108,6 @@ module.exports = {
         }
     },    
 
-
     // this is for signup endpoint
     signUpPage: async function (genpool, username, email, password) {
         try {
@@ -303,6 +302,20 @@ module.exports = {
                     dateadded DATE,
                     FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),   -- Assuming you have a suppliers table
                     FOREIGN KEY (categoryID) REFERENCES category(categoryID)    -- Assuming you have a categories table
+                );
+            `);
+
+            await pool.query(`
+                CREATE TABLE newProductPurchase (
+                    productid INT AUTO_INCREMENT PRIMARY KEY,       -- Auto-incrementing primary key for product ID
+                    productName VARCHAR(100) NOT NULL,              -- Product name, cannot be NULL
+                    price DECIMAL(10, 2) NOT NULL,                  -- Price with up to two decimal places, cannot be NULL
+                    categoryName VARCHAR(100) NOT NULL,             -- Category name, cannot be NULL
+                    reorderLevel INT NOT NULL,                      -- Reorder level, cannot be NULL
+                    expiry DATE NOT NULL,                           -- Expiry date, cannot be NULL
+                    orderDate DATE,                                 -- Order date, can be NULL
+                    quantity DECIMAL(10, 2),                        -- Quantity ordered, can be NULL
+                    supplierName VARCHAR(100)                       -- Supplier name, can be NULL
                 );
             `);
 

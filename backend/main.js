@@ -9,8 +9,10 @@ const { dispSupplier } = require("./supplierDisp.js");
 const { purchaseDisp } = require("./purchaseDisp.js");
 const { prodCatDisp } = require("./prodCatDisp.js");
 const { productCreate, categoryAdd, updateProdQuant, supplierAdd } = require("./product.js");
-const { categoryNametoID, supplierNametoID } = require("./NameBaseId.js");
+const { categoryNametoID, supplierNametoID, productNametoID } = require("./NameBaseId.js");
 const { OAuth2Client } = require("google-auth-library");
+const { addPurchase } = require("./addPurchaseOrder.js");
+const { newProdAdd } = require("./newProdPurchase.js");
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
 
 const client = new OAuth2Client(CLIENT_ID);
@@ -335,6 +337,39 @@ app.post("/auth", async (req, res) => {
     } catch (error) {
       console.error("Error fetching purchase order data:", error);
       res.status(500).json({success: false, data: "Error fetching purchase order data"});
+    }
+  });
+
+  
+
+  app.post("/:storename/addPurchase", async (req, res) => {
+    const { storename } = req.params;
+    try {
+      const [rows] = req.body
+      let result;
+      let length = rows.length
+      for (jsonContent in rows) {
+        const { purchaseOrderid, deliveryDate, orderDate, quantity, supplierID, supplierName, productid, productName, price, categoryName, reorderLevel, expiry, isNewProduct, orderStatus } = jsonContent
+        const supplierid = supplierNametoID(genpool, supplierName, storename)
+        const productID = productNametoID(genpool, productName, storename)
+        if(!isNewProduct) {
+          result = await addPurchase(genpool, storename, orderStatus, deliveryDate, orderDate, quantity, supplierid, productID) 
+        } else {
+          const newResult = await newProdAdd(genpool, storename, productid, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierName)
+          if(!newResult.success) {
+            console.log("Error adding new product purchase to newProductPurchase table")
+            res.status(404).json({success: false, message: "Couldn't add new purchase details due to database error"} )
+          }
+        }
+        if(result.success) {
+          length -= 1
+        } 
+      }
+      if(number === 0) {
+        res.status(200).json(result)
+      }
+    } catch (err) {
+      res.status(404).json({success: false, message: "Couldn't add new purchase details due to database error"} )
     }
   });
 
