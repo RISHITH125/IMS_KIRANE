@@ -411,11 +411,12 @@ app.post("/auth", async (req, res) => {
             });
           }
           
-          const categoryID = await categoryNametoID(genpool, categoryName,storename);
+          let categoryID = await categoryNametoID(genpool, categoryName,storename);
           const supplierID = await supplierNametoID(genpool, supplierName,storename);
           
           if (categoryID === null) {
             await categoryAdd(genpool, null, categoryName,storename);
+            categoryID = await categoryNametoID(genpool, categoryName,storename);
           }
           if (supplierID === null) {
             return res.status(404).send("Supplier not found");
@@ -445,6 +446,8 @@ app.post("/auth", async (req, res) => {
           });
         }
       }
+
+      productCreate(storeName,pool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiryDate)
       
       // Respond with results
       res.status(201).json({

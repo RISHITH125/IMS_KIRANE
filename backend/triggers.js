@@ -55,4 +55,12 @@ module.exports = {
             console.error('Error creating trigger for purchase updates:\n', err);
         }
     },
+
+    expiryCheck: async function (pool, storename) {
+        try {
+
+        } catch(err) {
+            
+        }
+    }
 }

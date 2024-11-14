@@ -35,6 +35,13 @@ yes
 
 
 
+- add supplier details in sup plier page
+- 
+
+
+
+/addProducts api
+
 
 #### // needs to be discussed 
 #### // need to be coded
