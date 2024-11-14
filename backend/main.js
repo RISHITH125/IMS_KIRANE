@@ -375,13 +375,11 @@ let genpool = mysql.createPool({
   app.get("/:storename/purchaseOrders", async (req, res) => {
     const { storename } = req.params;
     try {
-      const [rows] = await purchaseDisp(genpool, storename);
-      res.json({ success: true, data: rows }); // Send JSON response with key-value pairs for each row
+        const [rows] = await purchaseDisp(genpool, storename);
+        res.status(200).json({ success: true, data: rows }); // Send JSON response with key-value pairs for each row
     } catch (error) {
-      console.error("Error fetching purchase order data:", error);
-      res
-        .status(500)
-        .json({ success: false, data: "Error fetching purchase order data" });
+        console.error("Error fetching purchase order data:", error);
+        res.status(500).json({ success: false, data: "Error fetching purchase order data" });
     }
   });
 
@@ -477,8 +475,8 @@ let genpool = mysql.createPool({
 
       // Create an array of promises to add each supplier
       const promises = suppliers.map(async (supplier) => {
-        const { supplierName, address, phoneNumbers, emails } = supplier;
-        console.log(supplierName, address, phoneNumbers, emails);
+        const { supplierName, address, phoneNumber, email } = supplier;
+        console.log(supplierName, address, phoneNumber, email);
 
         // Assuming supplierAdd is a function that handles the database insertion
         const result = await supplierAdd(
@@ -486,8 +484,8 @@ let genpool = mysql.createPool({
           storename,
           address,
           supplierName,
-          phoneNumbers,
-          emails
+          phoneNumber,
+          email
         );
 
         return result;

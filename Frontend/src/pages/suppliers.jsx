@@ -11,17 +11,84 @@ import AddSupplierForm from '../components/addSupplierform';
 import { useSuppliers } from '../context/SupplierContext';
 
 const Suppliers = () => {
+    const { profile } = useUser();
+    let storename = profile?.storename; // Declare storename at the top
     const { productsData } = useProducts();
     const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
-    const [newSupplier, setNewSupplier, addSupplier] = useState([]);
+    const [newSupplier, setNewSupplier] = useState([]);
     const { suppliers, setSuppliers } = useSuppliers();
     const [newOrder, setNewOrder] = useState([]);
     const { orders, setOrders } = useOrders();
     const [expandedSuppliers, setExpandedSuppliers] = useState({});
     const [expandedOrders, setExpandedOrders] = useState({});
     const [isPlaceOrderOpen, setIsPlaceOrderOpen] = useState(false);
-
     const [filteredOrders, setFilteredOrders] = useState([]);
+
+    // Fetch suppliers
+    useEffect(() => {
+        const fetchSuppliers = async () => {
+            if (!storename) {
+                console.error("Store name is not available");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/${storename}/suppliers`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        setSuppliers(data.data);
+                        localStorage.setItem('suppliers', JSON.stringify(data.data));
+                    } else {
+                        console.error('Failed to fetch suppliers:', data.data);
+                    }
+                } else {
+                    console.error('Error fetching suppliers. Status:', response.status);
+                }
+            } catch (error) {
+                console.error('Error during fetchSuppliers:', error);
+            }
+        };
+
+        fetchSuppliers();
+    }, [storename]);
+
+    // Fetch orders
+    useEffect(() => {
+        const fetchOrders = async () => {
+            if (!storename) {
+                console.error('Store name is not available');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/${storename}/purchaseOrders`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setOrders(data.data);
+                    localStorage.setItem('orders', JSON.stringify(data.data));
+                } else {
+                    console.error('Failed to fetch purchase orders');
+                }
+            } catch (error) {
+                console.error('Error fetching purchase orders:', error);
+            }
+        };
+
+        fetchOrders();
+    }, [storename]);
+
+    // Sync orders with localStorage
+    useEffect(() => {
+        localStorage.setItem('orders', JSON.stringify(orders));
+    }, [orders]);
 
 
     const toggleSupplier = (supplierID) => {
@@ -38,7 +105,7 @@ const Suppliers = () => {
         }));
     };
 
-    const { profile } = useUser();
+
 
     // Open and Close the PlaceOrder form
     const openPlaceOrderForm = () => setIsPlaceOrderOpen(true);
@@ -48,7 +115,8 @@ const Suppliers = () => {
     // const getSupplierOrders = (supplierID) => orders.filter(order => order.supplierID === supplierID);
 
     // Calculate the max order ID
-    const maxOrderID = Math.max(...orders.map(o => o.purchaseOrderid), 0);
+    // Calculate the max order ID
+    const maxOrderID = Math.max(...(Array.isArray(orders) ? orders.map(o => o.purchaseOrderid) : []), 0);
 
     const groupOrdersByPurchaseOrder = (orders) => {
         return orders.reduce((grouped, order) => {
@@ -87,20 +155,36 @@ const Suppliers = () => {
         closePlaceOrderForm();
     };
     // console.log(orders);
-    const handleAddSupplier = async (nSupplier) => {
+
+    const handleAddSupplierPRE = (nSupplier) => {
         try {
-            // Update state locally
-            const updatedSuppliers = [...suppliers, { supplierID: suppliers.length + 1, ...nSupplier }];
+            // Create a new supplier object
+            const newSupplierObj = { supplierID: suppliers.length + 1, ...nSupplier };
+
+            // Update the suppliers state
+            const updatedSuppliers = [...suppliers, newSupplierObj];
             setSuppliers(updatedSuppliers);
-            setNewSupplier([...newSupplier]);
-    
+
+            // Set the newSupplier state to the new supplier object
+            setNewSupplier(newSupplierObj);
+
+            // Call handleAddSupplier to send the new supplier to the backend
+            handleAddSupplier(newSupplierObj); // Pass the new supplier object
+
+        } catch (error) {
+            console.error('Error adding supplier:', error);
+        }
+    };
+
+    const handleAddSupplier = async (supplierData) => {
+        try {
             // Prepare the data to send in the POST request
             const requestData = {
-                newSuppliers: newSupplier,
+                newSuppliers: [supplierData], // Send the new supplier as an array
             };
-    
+
             // Send POST request
-            const storename=profile?.storename
+            const storename = profile?.storename;
             const response = await fetch(`http://localhost:3000/${storename}/addSupplier`, {
                 method: 'POST',
                 headers: {
@@ -108,29 +192,52 @@ const Suppliers = () => {
                 },
                 body: JSON.stringify(requestData),
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Failed to add supplier: ${response.statusText}`);
             }
-    
+
             const result = await response.json();
             console.log('Server response:', result);
-    
+
         } catch (error) {
             console.error('Error adding supplier:', error);
         }
     };
-    
+
 
     useEffect(() => {
-        const storedOrders = localStorage.getItem('orders');
-        if (storedOrders) {
-            const parsedOrders = JSON.parse(storedOrders);
-            setOrders(parsedOrders);
-            setFilteredOrders(parsedOrders);
-        }
+        const fetchOrders = async () => {
+            storename = profile?.storename;
+            if (!storename) {
+                console.error("Store name is not available");
+                setLoading(false);
+                return;
+            }
 
-    }, [newOrder]);
+            try {
+                const response = await fetch(`/${storename}/purchaseOrders`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setOrders(data.data);
+                    localStorage.setItem('orders', JSON.stringify(data.data)); // Save to localStorage
+                } else {
+                    setError("Failed to fetch orders");
+                }
+            } catch (error) {
+                console.error("Error fetching purchase orders:", error);
+            }
+        };
+        fetchOrders();
+    }, [storename]); // Dependency array includes storename
+
+    // Sync orders to localStorage whenever the state changes
+    useEffect(() => {
+        localStorage.setItem('orders', JSON.stringify(orders));
+    }, [orders]);
+
+
 
     const handleFilter = (filteredData) => {
         setFilteredOrders(filteredData);
@@ -352,7 +459,7 @@ const Suppliers = () => {
                 {isAddSupplierOpen && (
                     <AddSupplierForm
                         onClose={() => setIsAddSupplierOpen(false)}
-                        onAddSupplier={handleAddSupplier}
+                        onAddSupplier={handleAddSupplierPRE}
                     />
                 )}
             </div>

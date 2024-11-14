@@ -1,5 +1,4 @@
 // This is to display in express the purchase Order details
-
 module.exports = {
     purchaseDisp: async function(pool, storeName) {
         try {
@@ -7,19 +6,21 @@ module.exports = {
             await pool.query(`USE \`${storeName}\`;`);
             const [rows] = await pool.query(`
                 SELECT 
-                    P.orderStatus, 
-                    P.deliveryDate, 
-                    P.orderDate, 
-                    P.quantity, 
-                    S.supplierName, 
-                    pr.productName 
+                    po.purchaseOrderid, 
+                    po.orderStatus, 
+                    po.deliveryDate, 
+                    po.orderDate, 
+                    po.quantity, 
+                    s.supplierName, 
+                    p.productName
                 FROM 
-                    purchaseOrder AS P 
+                    purchaseOrder po
                 JOIN 
-                    product AS pr ON P.productid = pr.productid 
+                    supplier s ON po.supplierID = s.supplierID
                 JOIN 
-                    supplier AS S ON P.supplierID = S.supplierID;
-
+                    product p ON po.productid = p.productid
+                ORDER BY 
+                    s.supplierName;
             `);
             return rows;
         } catch (err) {
