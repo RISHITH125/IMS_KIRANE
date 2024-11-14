@@ -63,9 +63,10 @@ module.exports = {
         }
     },
 
-    supplierAdd: async function(pool, address, supplierName, phnoArray, emailArray) {
+    supplierAdd: async function(pool, storename, address, supplierName, phnoArray, emailArray) {
         try {
             // Insert into supplier table
+            await pool.query(`USE \`${storeName}\`;`);
             await pool.query(`
                 INSERT IGNORE INTO supplier (
                 address, supplierName) 

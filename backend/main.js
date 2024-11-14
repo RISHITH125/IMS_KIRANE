@@ -340,13 +340,21 @@ app.post("/auth", async (req, res) => {
 
   app.post("/:storename/addSupplier", async (req, res) => {
     const { storename } = req.params;
+  
     try {
-      const { supplierName, address, phoneNumbers, emails } = req.body
-      const result = await supplierAdd(genpool, address, supplierName, phoneNumbers, emails)
-      
-      if (result.success) {
+      let result;
+      let number = req.body.length
+      for (jsonContent in req.body){
+        const { supplierName, address, phoneNumbers, emails } = jsonContent
+        result = await supplierAdd(genpool, storename, address, supplierName, phoneNumbers, emails)
+        if (result.success) {
+          number -= 1
+        }
+      }
+      if(number === 0) {
         res.status(200).json(result)
       }
+      
     } catch(err) {
       res.status(404).json({success: false, message: "Couldn't add new supplier details due to database error"} )
     }
