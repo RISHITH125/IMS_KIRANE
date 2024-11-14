@@ -316,14 +316,17 @@ app.post("/auth", async (req, res) => {
 
   // Route to fetch supplier information as JSON
   app.get("/:storename/suppliers", async (req, res) => {
+    const { storename } = req.params;
     try {
-      const rows = await dispSupplier(pool); // Call to fetch supplier information with JOINs
-      res.json(rows); // Send JSON response with key-value pairs for each row
+      const rows = await dispSupplier(genpool, storename); // Call to fetch supplier information with JOINs
+      res.json({success: true, data: rows}); // Send JSON response with key-value pairs for each row
     } catch (error) {
       console.error("Error fetching supplier data:", error);
-      res.status(500).send("Error fetching supplier data");
+      res.status(500).json({success:false, data: "Error fetching supplier data"});
     }
   });
+
+  
 
   // Route to fetch purchase order information as JSON
   app.get("/:storename/purchaseOrders", async (req, res) => {
@@ -351,16 +354,13 @@ app.post("/auth", async (req, res) => {
   });
 
   // Start the server
-  app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-  });
-
-
+  
+  
   //handle new products and updated items 
   app.post("/:storename/newupdateprods", async (req, res) => {
     try {
       const { updatedItems, newProducts, storename } = req.body;
-  
+      
       if (!updatedItems && !newProducts) {
         return res.status(400).json({ message: "No data provided" });
       }
@@ -368,23 +368,23 @@ app.post("/auth", async (req, res) => {
 
       const updateResults = [];
       const newProductResults = [];
-  
+      
       // Handle updatedItems
       if (updatedItems && updatedItems.length > 0) {
         for (const item of updatedItems) {
           const { productid, quantity } = item;
-  
+          
           if (!productid || quantity == null) {
             return res
-              .status(400)
-              .json({ message: "Missing productid or quantity in updatedItems" });
+            .status(400)
+            .json({ message: "Missing productid or quantity in updatedItems" });
           }
-  
+          
           const updateResult = await updateProdQuant(genpool, productid, quantity,storename);
           updateResults.push({ productid, quantity, updateResult });
         }
       }
-  
+      
       // Handle newProducts
       if (newProducts && newProducts.length > 0) {
         for (const product of newProducts) {
@@ -397,7 +397,7 @@ app.post("/auth", async (req, res) => {
             reorderLevel,
             expiry,
           } = product;
-  
+          
           if (
             !productName ||
             price == null ||
@@ -411,17 +411,17 @@ app.post("/auth", async (req, res) => {
               message: "Missing required fields in newProducts",
             });
           }
-  
+          
           const categoryID = await categoryNametoID(genpool, categoryName,storename);
           const supplierID = await supplierNametoID(genpool, supplierName,storename);
-  
+          
           if (categoryID === null) {
             await categoryAdd(genpool, null, categoryName,storename);
           }
           if (supplierID === null) {
             return res.status(404).send("Supplier not found");
           }
-  
+          
           const newProductResult = await productCreate(
             storename,
             genpool,
@@ -433,7 +433,7 @@ app.post("/auth", async (req, res) => {
             reorderLevel,
             new Date(expiry) // Ensure expiry is a Date object
           );
-  
+          
           newProductResults.push({
             productName,
             price,
@@ -446,7 +446,7 @@ app.post("/auth", async (req, res) => {
           });
         }
       }
-  
+      
       // Respond with results
       res.status(201).json({
         result: true,
@@ -459,14 +459,8 @@ app.post("/auth", async (req, res) => {
       res.status(500).json({ message: "Server error", error });
     }
   });
-  
 
-
-
-
-
-
-
-
-
+  app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+  });
 })();

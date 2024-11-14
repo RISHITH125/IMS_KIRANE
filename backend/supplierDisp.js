@@ -1,8 +1,10 @@
 // This is to fetch supplier details at the UI end
 
 module.exports = {
-    dispSupplier: async function (pool) {
+    dispSupplier: async function (pool, storeName) {
         try {
+            console.log(storeName)
+            await pool.query(`USE \`${storeName}\`;`);
             const [rows] = await pool.query(`
                 SELECT 
                     S.supplierName, 
