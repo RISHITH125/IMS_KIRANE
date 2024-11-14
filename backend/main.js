@@ -342,24 +342,43 @@ app.post("/auth", async (req, res) => {
     const { storename } = req.params;
   
     try {
-      let result;
-      let number = req.body.length
-      for (jsonContent in req.body){
-        const { supplierName, address, phoneNumbers, emails } = jsonContent
-        result = await supplierAdd(genpool, storename, address, supplierName, phoneNumbers, emails)
-        if (result.success) {
-          number -= 1
-        }
+      // Expecting suppliers to be in the 'newSuppliers' field of the request body
+      const suppliers = req.body.newSuppliers;
+  
+      // Check if suppliers is an array
+      if (!Array.isArray(suppliers)) {
+        return res.status(400).json({ success: false, message: "Suppliers should be an array" });
       }
-      if(number === 0) {
-        res.status(200).json(result)
+  
+      // Create an array of promises to add each supplier
+      const promises = suppliers.map(async (supplier) => {
+        const { supplierName, address, phoneNumbers, emails } = supplier;
+        console.log(supplierName, address, phoneNumbers, emails);
+        
+        // Assuming supplierAdd is a function that handles the database insertion
+        const result = await supplierAdd(genpool, storename, address, supplierName, phoneNumbers, emails);
+        
+        return result;
+      });
+  
+      // Wait for all the suppliers to be processed
+      const results = await Promise.all(promises);
+  
+      // Check if all suppliers were added successfully
+      const allSuccess = results.every(result => result.success);
+  
+      if (allSuccess) {
+        return res.status(200).json({ success: true, message: "Suppliers added successfully." });
+      } else {
+        return res.status(400).json({ success: false, message: "Some suppliers couldn't be added." });
       }
-      
-    } catch(err) {
-      res.status(404).json({success: false, message: "Couldn't add new supplier details due to database error"} )
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ success: false, message: "Couldn't add new supplier details due to a database error." });
     }
-  });
+});
 
+  
   // Route to fetch supplier information as JSON
   app.get("/:storename/prodCat", async (req, res) => {
     try {
