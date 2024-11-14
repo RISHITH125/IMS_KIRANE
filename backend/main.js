@@ -477,8 +477,8 @@ let genpool = mysql.createPool({
 
       // Create an array of promises to add each supplier
       const promises = suppliers.map(async (supplier) => {
-        const { supplierName, address, phoneNumbers, emails } = supplier;
-        console.log(supplierName, address, phoneNumbers, emails);
+        const { supplierName, address, phoneNumber, email } = supplier;
+        console.log(supplierName, address, phoneNumber, email);
 
         // Assuming supplierAdd is a function that handles the database insertion
         const result = await supplierAdd(
@@ -486,8 +486,8 @@ let genpool = mysql.createPool({
           storename,
           address,
           supplierName,
-          phoneNumbers,
-          emails
+          phoneNumber,
+          email
         );
 
         return result;

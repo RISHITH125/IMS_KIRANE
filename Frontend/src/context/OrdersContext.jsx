@@ -34,56 +34,18 @@
 
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-
 // Create a context for orders
 const OrdersContext = createContext();
-
+// const storename=profile?.storename
 // Provider component to wrap the app and provide the orders state
-export const OrdersProvider = ({ children, storename }) => { // Accept storename as a prop
+export const OrdersProvider = ({ children}) => { // Accept storename as a prop
     const [orders, setOrders] = useState(() => {
         const savedOrders = localStorage.getItem('orders');
         return savedOrders ? JSON.parse(savedOrders) : [];
     });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        const fetchOrders = async () => {
-            if (!storename) {
-                console.error("Store name is not available");
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const response = await fetch(`/${storename}/purchaseOrders`);
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    setOrders(data.data);
-                    localStorage.setItem('orders', JSON.stringify(data.data)); // Save to localStorage
-                } else {
-                    setError("Failed to fetch orders");
-                }
-            } catch (error) {
-                console.error("Error fetching purchase orders:", error);
-                setError("Error fetching purchase orders");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchOrders();
-    }, [storename]); // Dependency array includes storename
-
-    // Sync orders to localStorage whenever the state changes
-    useEffect(() => {
-        localStorage.setItem('orders', JSON.stringify(orders));
-    }, [orders]);
-
     // Provide the orders state, loading state, error state, and setter function to the rest of the app
     return (
-        <OrdersContext.Provider value={{ orders, loading, error, setOrders }}>
+        <OrdersContext.Provider value={{ orders,setOrders }}>
             {children}
         </OrdersContext.Provider>
     );

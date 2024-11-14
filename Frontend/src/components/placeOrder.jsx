@@ -160,8 +160,8 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
                                     disabled={totalProducts > 1}  // Disable after first product
                                 >
                                     <option value="" disabled>Select Supplier</option>
-                                    {suppliers.map((supplier) => (
-                                        <option key={supplier.supplierID} value={supplier.supplierID}>
+                                    {suppliers.map((supplier,index) => (
+                                        <option key={index} value={supplier.supplierID}>
                                             {supplier.supplierName}
                                         </option>
                                     ))}

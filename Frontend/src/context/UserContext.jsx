@@ -6,7 +6,7 @@ const UserContext = createContext(null);
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
-    const [profile, setProfile] = useState();
+    const [profile, setProfile] = useState(null);
 
     useEffect(() => {
         // Retrieve from local storage only

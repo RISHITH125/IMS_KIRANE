@@ -5,7 +5,6 @@ import Authentication from "./pages/authentication";
 import Products from "./pages/products";
 import Suppliers from "./pages/suppliers";
 import Profile from "./pages/profile";
-// import Alerts from "./pages/alerts";
 import { UserProvider, useUser } from "./context/UserContext";
 import { ProductsProvider } from "./context/ProductsContext";
 import { OrdersProvider } from "./context/OrdersContext";
