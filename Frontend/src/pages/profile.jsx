@@ -30,7 +30,7 @@ const ProfilePage = () => {
             {/* User Details */}
             <div>
               <h3 className="text-lg font-medium text-gray-800">Full Name:</h3>
-              <p className="text-gray-600">{profile.fullName || 'N/A'}</p>
+              <p className="text-gray-600">{profile.fullname || 'N/A'}</p>
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-800">Username:</h3>
@@ -46,7 +46,7 @@ const ProfilePage = () => {
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-800">Phone Number:</h3>
-              <p className="text-gray-600">{profile.phoneNumber || 'N/A'}</p>
+              <p className="text-gray-600">{profile.phno || 'N/A'}</p>
             </div>
 
             {/* Logout Button */}

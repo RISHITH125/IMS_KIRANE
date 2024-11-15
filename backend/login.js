@@ -315,7 +315,11 @@ module.exports = {
                     expiry DATE NOT NULL,                           -- Expiry date, cannot be NULL
                     orderDate DATE,                                 -- Order date, can be NULL
                     quantity DECIMAL(10, 2),                        -- Quantity ordered, can be NULL
+                    supplierID INT,
+                    purchaseOrderid INT,
                     supplierName VARCHAR(100)                       -- Supplier name, can be NULL
+                    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),
+                    FOREIGN KEY (purchaseOrderid) REFERENCES purchaseOrder(purchaseOrderid)
                 );
             `);
 
@@ -340,6 +344,7 @@ module.exports = {
                     deliveryDate DATE NOT NULL,
                     orderDate DATE NOT NULL,
                     quantity DECIMAL(10, 2) NOT NULL,
+                    isNew TINYINT CHECK (isNew IN (0, 1)) NOT NULL,
                     supplierID INT,
                     productid INT, 
                     FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),

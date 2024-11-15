@@ -116,41 +116,40 @@ let genpool = mysql.createPool({
   // this endpoint is only for signup and auth endpoints
   app.post("/addStore", async (req, res) => {
     try {
-      // just check if password is hashed or not
-      const { username, email, password, fullname, phno, storename } = req.body;
-      await genpool.query(
-        `UPDATE user SET storename = ? WHERE email = ?`,
-        [storename, email]
-      );
-      console.log(username, email, password, fullname, phno, storename);
-      genpool = await createStoreDatabase(genpool, storename, username);
-      const result = await loginCreate(
-        genpool,
-        fullname,
-        password,
-        storename,
-        username,
-        email,
-        phno
-      );
+        const { username, email, password, fullname, phno, storename } = req.body;
 
-      // call the triggers and functions and procedures
-      await productSaleUpdate(genpool)
-      await afterPurchaseUpdate(genpool)
-      await setFunction(genpool, storename)
+        // Update user with store name
+        await genpool.query(`UPDATE user SET storename = ? WHERE email = ?`, [storename, email]);
+        console.log(username, email, password, fullname, phno, storename);
 
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(404).json(result);
-      }
+        // Create store database
+        genpool = await createStoreDatabase(genpool, storename, username);
+        
+        // Create login and other necessary records
+        const result = await loginCreate(genpool, fullname, password, storename, username, email, phno);
+
+        // Call the triggers and functions and procedures
+        const productSaleResult = await productSaleUpdate(genpool);
+        if (!productSaleResult.success) {
+            return res.status(500).json({ success: false, message: productSaleResult.message });
+        }
+
+        const setFunctionResult = await setFunction(genpool, storename);
+        if (!setFunctionResult.success) {
+            return res.status(500).json({ success: false, message: setFunctionResult.message });
+        }
+
+        // Check the result of the login creation
+        if (result.success) {
+            res.status(200).json(result);
+        } else {
+            res.status(404).json(result);
+        }
     } catch (err) {
-      console.error(
-        "Error in receiving the details from the signup or google auth page or database is inaccessible..\n",
-        err
-      );
+        console.error("Error in receiving the details from the signup or google auth page or database is inaccessible:\n", err);
+        res.status(500).json({ success: false, message: "Internal server error." });
     }
-  });
+});
 
   //   ALTER TABLE user MODIFY storename VARCHAR(100) NULL;
   // dont forget to use this
@@ -261,69 +260,6 @@ let genpool = mysql.createPool({
     }
   });
 
-  // This is just for testing purposes
-  app.get("/:storename/addProductTest", async (req, res) => {
-    try {
-      // Extract values from the query parameters
-      const {
-        productName,
-        price,
-        supplierName, // needs to be discussed: do you need to add address, phone number, email of the supplier?
-        categoryName,
-        quantity,
-        reorderLevel,
-        expiry,
-      } = req.query;
-
-      // Check if all required fields are provided
-      if (
-        !productName ||
-        !price ||
-        !supplierName ||
-        !categoryName ||
-        !quantity ||
-        !reorderLevel ||
-        !expiry
-      ) {
-        return res.status(400).send("Missing required query parameters");
-      }
-
-      // Convert price, quantity, reorderLevel, and expiry to appropriate types
-      const parsedPrice = parseInt(price, 10);
-      const parsedQuantity = parseInt(quantity, 10);
-      const parsedReorderLevel = parseInt(reorderLevel, 10);
-      const parsedExpiry = new Date(expiry); // Ensure expiry is a date
-
-      const categoryID = await categoryNametoID(pool, categoryName);
-      const supplierID = await supplierNametoID(pool, supplierName);
-
-      // Check if categoryID and supplierID were found
-      if (categoryID === null) {
-        await categoryAdd(pool, null, categoryName);
-      }
-      if (supplierID === null) {
-        return res.status(404).send("Supplier not found");
-      }
-
-      // Call a function to insert this data into the product table
-      const result = await productCreate(
-        pool,
-        productName,
-        parsedPrice,
-        supplierID,
-        categoryID,
-        parsedQuantity,
-        parsedReorderLevel,
-        parsedExpiry
-      );
-
-      res.status(201).json({ message: "Product added successfully", result });
-    } catch (error) {
-      console.error("Error adding product:", error);
-      res.status(500).send("Error adding product");
-    }
-  });
-
   // Route to update product quantity detials
   app.post("/:storename/updateProd", async (req, res) => {
     try {
@@ -336,29 +272,6 @@ let genpool = mysql.createPool({
     } catch (error) {
       console.error("Error updating product:", error);
       res.status(500).send("Error adding product");
-    }
-  });
-
-  // This is just to test
-  app.get("/:storename/updateProdTest", async (req, res) => {
-    try {
-      // Extract productid and quantity from query parameters
-      const { productid, quantity } = req.query;
-
-      // Ensure productid and quantity are provided
-      if (!productid || !quantity) {
-        return res
-          .status(400)
-          .json({ message: "Product ID and quantity are required." });
-      }
-
-      // Call a function to update the product quantity in the database
-      const result = await updateProdQuant(genpool, productid, quantity);
-
-      res.status(200).json({ message: "Product updated successfully", result });
-    } catch (error) {
-      console.error("Error updating product:", error);
-      res.status(500).send("Error updating product");
     }
   });
 
@@ -389,81 +302,89 @@ let genpool = mysql.createPool({
     }
 });
 
-  app.post("/:storename/addPurchase", async (req, res) => {
-    const { storename } = req.params;
-    try {
-      const [rows] = req.body;
+app.post("/:storename/addPurchase", async (req, res) => {
+  const { storename } = req.params;
+  try {
+      const rows = req.body.data;
       let result;
-      let length = rows.length;
-      for (jsonContent in rows) {
-        const {
-          purchaseOrderid,
-          deliveryDate,
-          orderDate,
-          quantity,
-          supplierID,
-          supplierName,
-          productid,
-          productName,
-          price,
-          categoryName,
-          reorderLevel,
-          expiry,
-          isNewProduct,
-          orderStatus,
-        } = jsonContent;
-        const supplierid = supplierNametoID(genpool, supplierName, storename);
-        const productID = productNametoID(genpool, productName, storename);
-        if (!isNewProduct) {
-          result = await addPurchase(
-            genpool,
-            storename,
-            orderStatus,
-            deliveryDate,
-            orderDate,
-            quantity,
-            supplierid,
-            productID
-          );
-        } else {
-          const newResult = await newProdAdd(
-            genpool,
-            storename,
-            productid,
-            productName,
-            price,
-            categoryName,
-            reorderLevel,
-            expiry,
-            orderDate,
-            quantity,
-            supplierName
-          );
-          if (!newResult.success) {
-            console.log(
-              "Error adding new product purchase to newProductPurchase table"
-            );
-            res.status(404).json({
-              success: false,
-              message:
-                "Couldn't add new purchase details due to database error",
-            });
+      let successCount = 0; // To count successful operations
+
+      for (const jsonContent of rows) {
+          const {
+              purchaseOrderid,
+              deliveryDate,
+              orderDate,
+              quantity,
+              supplierID,
+              supplierName,
+              productid,
+              productName,
+              price,
+              categoryName,
+              reorderLevel,
+              expiry,
+              isNewProduct,
+              orderStatus,
+          } = jsonContent;
+
+          const supplierid = await supplierNametoID(genpool, supplierName, storename);
+          const productID = await productNametoID(genpool, productName, storename);
+
+          if (!isNewProduct) {
+              result = await addPurchase(
+                  genpool,
+                  storename,
+                  orderStatus,
+                  deliveryDate,
+                  orderDate,
+                  quantity,
+                  isNewProduct,
+                  supplierid,
+                  productID
+              );
+          } else {
+              const newResult = await newProdAdd(
+                  genpool,
+                  storename,
+                  productid,
+                  productName,
+                  price,
+                  categoryName,
+                  reorderLevel,
+                  expiry,
+                  orderDate,
+                  quantity,
+                  supplierName
+              );
+
+              if (!newResult.success) {
+                  console.log("Error adding new product purchase to newProductPurchase table");
+                  return res.status(404).json({
+                      success: false,
+                      message: "Couldn't add new purchase details due to database error",
+                  });
+              }
           }
-        }
-        if (result.success) {
-          length -= 1;
-        }
+
+          if (result && result.success) {
+              successCount += 1; // Increment success count
+          }
       }
-      if (number === 0) {
-        res.status(200).json(result);
-      }
-    } catch (err) {
-      res.status(404).json({
-        success: false,
-        message: "Couldn't add new purchase details due to database error",
+
+      // Return success response
+      res.status(200).json({
+          success: true,
+          message: `${successCount} purchases processed successfully.`,
       });
-    }
-  });
+
+  } catch (err) {
+      console.error(err); // Log the error for debugging
+      res.status(500).json({
+          success: false,
+          message: "Couldn't add new purchase details due to database error",
+      });
+  }
+});
 
   app.post("/:storename/addSupplier", async (req, res) => {
     const { storename } = req.params;
@@ -474,9 +395,7 @@ let genpool = mysql.createPool({
 
       // Check if suppliers is an array
       if (!Array.isArray(suppliers)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Suppliers should be an array" });
+        return res.status(400).json({ success: false, message: "Suppliers should be an array" });
       }
 
       // Create an array of promises to add each supplier
@@ -669,12 +588,12 @@ let genpool = mysql.createPool({
     }
   });
 
-  app.post("/:storename/sales", async (req, res) => {
+  app.post("/:storename/addsales", async (req, res) => {
     const { storename } = req.params;
     const { productName, quantitySold, salesPrice, paymentMethod } = req.body;
 
     const result = await addSales(
-      pool,
+      genpool,
       productName,
       quantitySold,
       salesPrice,
@@ -686,6 +605,49 @@ let genpool = mysql.createPool({
       res.status(200).json(result);
     } else {
       res.status(500).json(result);
+    }
+  });
+
+  app.post("/:storename/orderReceived", async (req, res) => {
+    try {
+        const { purchaseOrderid, isNew } = req.body;
+        await pool.query(`USE \`${req.params.storename}\`;`);
+        if(!isNew){
+          await genpool.query(`
+              UPDATE purchaseOrder
+              SET orderStatus = 1
+              WHERE purchaseOrderid = ?;
+          `, [purchaseOrderid]);
+        } else {
+          const [newProductDetails] = await genpool.query(`
+            SELECT productName, price, categoryName, reorderLevel, expiry, quantity, supplierID, supplierName
+            FROM newProductPurchase
+            WHERE purchaseOrderid = ?;
+        `, [purchaseOrderid]);
+
+        if (newProductDetails.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No new product details found for the given purchaseOrderid."
+            });
+        }
+
+        // you need to insert into product table
+        // you need to fetch productid and supplierid, 
+        // you need to insert this into purchaseOrder table.
+
+        // Return success response
+        res.status(200).json({
+            success: true,
+            message: "Order status updated successfully."
+        });}
+    } catch (err) {
+        // Return error response
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while updating the order status.",
+            error: err.message // Optionally include the error message for debugging
+        });
     }
   });
 

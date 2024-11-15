@@ -6,8 +6,9 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import AddSalesForm from '../components/addSalesform';  // Import AddSalesForm
 import SalesRecord from '../components/salesRecord';  // Import SalesRecord
-
+import {useProducts} from '../context/ProductsContext'
 const Dashboard = () => {
+  const {productsData} = useProducts();
   const { profile, setProfile } = useUser();
   const [showAddSalesForm, setShowAddSalesForm] = useState(false);  // State to toggle AddSalesForm
 
@@ -57,7 +58,7 @@ const Dashboard = () => {
               {/* Add Sales Form */}
               {showAddSalesForm && (
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-lg">
-                  <AddSalesForm />
+                  <AddSalesForm products={productsData} />
                 </div>
               )}
 

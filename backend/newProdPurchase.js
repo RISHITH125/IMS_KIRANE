@@ -1,11 +1,11 @@
 module.exports = {
-    newProdAdd: async function (pool, storename, productid, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierName) {
+    newProdAdd: async function (pool, storename, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, purchaseOrderid, supplierName) {
         try {
             // SQL query for inserting new product details
             await pool.query(`USE \`${storename}\`;`);
             const query = `
-                INSERT INTO newProductPurchase (productid, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierName)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO newProductPurchase (productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierName)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
             
             // Execute the query using the provided parameters
@@ -18,6 +18,8 @@ module.exports = {
                 expiry,
                 orderDate,
                 quantity,
+                supplierID,
+                purchaseOrderid,
                 supplierName
             ]);
 
