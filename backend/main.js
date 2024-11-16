@@ -32,6 +32,8 @@ const { addPurchase } = require("./addPurchaseOrder.js");
 const { newProdAdd } = require("./newProdPurchase.js");
 const { salesDisp } = require("./salesDisp.js");
 const { addSales } = require("./addSales.js");
+const { productSaleUpdate,setFunction } = require('./triggers.js');
+
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
 
