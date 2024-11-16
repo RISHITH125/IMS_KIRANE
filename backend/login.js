@@ -112,7 +112,7 @@ module.exports = {
     signUpPage: async function (genpool, username, email, password) {
         try {
             // await genpool.query(`USE store;`);
-            await genpool.query(`USE store;`);
+            // await genpool.query(`USE store;`);
             
             // Check if the user already exists
             const [rows] = await genpool.query(`
@@ -306,24 +306,6 @@ module.exports = {
             `);
 
             await pool.query(`
-                CREATE TABLE newProductPurchase (
-                    productid INT AUTO_INCREMENT PRIMARY KEY,       -- Auto-incrementing primary key for product ID
-                    productName VARCHAR(100) NOT NULL,              -- Product name, cannot be NULL
-                    price DECIMAL(10, 2) NOT NULL,                  -- Price with up to two decimal places, cannot be NULL
-                    categoryName VARCHAR(100) NOT NULL,             -- Category name, cannot be NULL
-                    reorderLevel INT NOT NULL,                      -- Reorder level, cannot be NULL
-                    expiry DATE NOT NULL,                           -- Expiry date, cannot be NULL
-                    orderDate DATE,                                 -- Order date, can be NULL
-                    quantity DECIMAL(10, 2),                        -- Quantity ordered, can be NULL
-                    supplierID INT,
-                    purchaseOrderid INT,
-                    supplierName VARCHAR(100)                       -- Supplier name, can be NULL
-                    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),
-                    FOREIGN KEY (purchaseOrderid) REFERENCES purchaseOrder(purchaseOrderid)
-                );
-            `);
-
-            await pool.query(`
                 CREATE TABLE IF NOT EXISTS sales (
                     salesid INT AUTO_INCREMENT PRIMARY KEY,    -- Unique identifier for each sale
                     productid INT,                             -- Foreign key to the Product table
@@ -350,6 +332,26 @@ module.exports = {
                     FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),
                     FOREIGN KEY (productID) REFERENCES product(productid)
                 )`)
+
+            await pool.query(`
+                CREATE TABLE newProductPurchase (
+                    productid INT AUTO_INCREMENT PRIMARY KEY,       -- Auto-incrementing primary key for product ID
+                    productName VARCHAR(100) NOT NULL,              -- Product name, cannot be NULL
+                    price DECIMAL(10, 2) NOT NULL,                  -- Price with up to two decimal places, cannot be NULL
+                    categoryName VARCHAR(100) NOT NULL,             -- Category name, cannot be NULL
+                    reorderLevel INT NOT NULL,                      -- Reorder level, cannot be NULL
+                    expiry DATE NOT NULL,                           -- Expiry date, cannot be NULL
+                    orderDate DATE,                                 -- Order date, can be NULL
+                    quantity DECIMAL(10, 2),                        -- Quantity ordered, can be NULL
+                    supplierID INT,
+                    purchaseOrderid INT,
+                    supplierName VARCHAR(100),                      -- Supplier name, can be NULL
+                    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),                    
+                    FOREIGN KEY (purchaseOrderid) REFERENCES purchaseOrder(purchaseOrderid)
+                );
+            `);
+
+
             console.log(`Database and user, products, category, supplier table for store '${storename}' created successfully.`);
 
             return pool;

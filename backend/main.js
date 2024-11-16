@@ -32,6 +32,7 @@ const { addPurchase } = require("./addPurchaseOrder.js");
 const { newProdAdd } = require("./newProdPurchase.js");
 const { salesDisp } = require("./salesDisp.js");
 const { addSales } = require("./addSales.js");
+const { productSaleUpdate, afterPurchaseUpdate } = require("./triggers.js")
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
 
@@ -117,11 +118,11 @@ let genpool = mysql.createPool({
   app.post("/addStore", async (req, res) => {
     try {
         const { username, email, password, fullname, phno, storename } = req.body;
-
+        
         // Update user with store name
         await genpool.query(`UPDATE user SET storename = ? WHERE email = ?`, [storename, email]);
         console.log(username, email, password, fullname, phno, storename);
-
+        
         // Create store database
         genpool = await createStoreDatabase(genpool, storename, username);
         
@@ -129,14 +130,14 @@ let genpool = mysql.createPool({
         const result = await loginCreate(genpool, fullname, password, storename, username, email, phno);
 
         // Call the triggers and functions and procedures
-        const productSaleResult = await productSaleUpdate(genpool);
+        const productSaleResult = await productSaleUpdate(genpool, storename);
         if (!productSaleResult.success) {
             return res.status(500).json({ success: false, message: productSaleResult.message });
         }
 
-        const setFunctionResult = await setFunction(genpool, storename);
-        if (!setFunctionResult.success) {
-            return res.status(500).json({ success: false, message: setFunctionResult.message });
+        const afterPurchaseUpdate = await afterPurchaseUpdate(genpool, storename);
+        if (!afterPurchaseUpdate.success) {
+            return res.status(500).json({ success: false, message: afterPurchaseUpdate.message });
         }
 
         // Check the result of the login creation
