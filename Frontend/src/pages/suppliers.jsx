@@ -187,10 +187,33 @@ const Suppliers = () => {
     
             if (!response.ok) {
                 throw new Error(`Failed to add purchase: ${response.statusText}`);
+                
             }
     
             const result = await response.json();
             console.log('Purchase addition response:', result);
+            try {
+                const response = await fetch(`http://localhost:3000/${storename}/suppliers`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        setSuppliers(data.data);
+                        localStorage.setItem('suppliers', JSON.stringify(data.data));
+                    } else {
+                        console.error('Failed to fetch suppliers:', data.data);
+                    }
+                } else {
+                    console.error('Error fetching suppliers. Status:', response.status);
+                }
+            } catch (error) {
+                console.error('Error during fetchSuppliers:', error);
+            }
         } catch (error) {
             console.error('Error adding purchase:', error);
         }
