@@ -15,8 +15,9 @@ const { addPurchase } = require("./addPurchaseOrder.js");
 const { newProdAdd } = require("./newProdPurchase.js");
 const { salesDisp } = require("./salesDisp.js");
 const { addSales } = require("./addSales.js");
-const { productSaleUpdate, afterPurchaseUpdate } = require("./triggers.js")
-const {fetchNewProdPurchase} = require("./newProdPurFetch.js")
+const { productSaleUpdate, afterPurchaseUpdate } = require("./triggers.js");
+const { fetchNewProdPurchase } = require("./newProdPurFetch.js");
+
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
 
 const client = new OAuth2Client(CLIENT_ID);
@@ -656,24 +657,38 @@ app.post("/:storename/addPurchase", async (req, res) => {
     }
   });
 
-  app.get('/:storename/fetchNewProdPurchase', async (req, res) => {
+  app.get("/:storename/fetchNewProdPur", async (req, res) => {
     const { storename } = req.params;
-    const { productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName } = req.query;
-
     try {
-        const result = await fetchNewProdPurchase(pool, storename, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName);
-        return res.status(result.success ? 200 : 500).json(result);
-    } catch (error) {
-        console.error("Error fetching new product purchase:", error);
+        // Fetch new product purchases from the database
+        const [rows] = await fetchNewProdPurchase(genpool, storename);
+        
+        // Check if any rows were returned
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No new product purchases found."
+            });
+        }
+
+        // Return the fetched rows with a success message
+        return res.status(200).json({
+            success: true,
+            message: "New product purchases fetched successfully.",
+            data: rows // Include the fetched data
+        });
+        
+    } catch (err) {
+        console.error(err); // Log the error for debugging
+
+        // Return an error response
         return res.status(500).json({
             success: false,
-            message: "An error occurred while fetching new product purchase details.",
-            error: error.message
+            message: "Couldn't fetch new product purchases due to a server error.",
+            error: err.message // Optionally include the error message
         });
     }
-});
-
-
+  });
 
   app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

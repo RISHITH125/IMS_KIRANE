@@ -1,25 +1,27 @@
-// This is code to fetch the newProductPurchase details for a new product purchase order
-
 module.exports = {
-    fetchNewProdPurchase: async function (pool, storename, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName) {
+    fetchNewProdPurchase: async function (pool, storename) {
         try {
+            // Switch to the specified database
             await pool.query(`USE \`${storename}\`;`);
+
+            // Fetch new product purchase details
             const [rows] = await pool.query(
                 `SELECT productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName
-                 FROM newProductPurchase
-                 WHERE purchaseOrderid = ?;`,
-                [productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName] // Added productid here
+                 FROM newProductPurchase`
             );
+
+            // Return the fetched rows with a success message
             return {
                 success: true,
-                message: rows
-            }
-        } catch(err) {
-            console.error("Error while inserting purchase...", err);
+                message: "New product purchases fetched successfully.",
+                data: rows // Include the fetched data
+            };
+        } catch (err) {
+            console.error("Error while fetching new product purchases...", err);
             return {
                 success: false,
-                message: "database error while fetching new product purchase details"
-            }
+                message: "Database error while fetching new product purchase details."
+            };
         }
     }
-}
+};
