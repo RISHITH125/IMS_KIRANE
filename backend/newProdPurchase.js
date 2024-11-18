@@ -15,36 +15,22 @@ module.exports = {
 
             await pool.query(`USE \`${storename}\`;`);
             const query = `
-                INSERT INTO newProductPurchase (productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName, purchaseOrderid)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                INSERT INTO newProductPurchase (productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             
-            // Log the parameters being sent
-            console.log("Executing query with parameters:", [
-                productName,
-                price,
-                categoryName,
-                reorderLevel,
-                formattedExpiry,
-                orderDate,
-                quantity,
-                supplierID,
-                supplierName,
-                purchaseOrderid
-            ]);
-
             // Execute the query using the provided parameters
             const [result] = await pool.execute(query, [
+                productid,
                 productName,
                 price,
                 categoryName,
                 reorderLevel,
-                formattedExpiry, // Use the formatted date
+                expiry,
                 orderDate,
                 quantity,
                 supplierID,
-                supplierName,
-                purchaseOrderid // Include purchaseOrderid
+                supplierName
             ]);
 
             // Return the result (insert ID or confirmation of success)

@@ -601,17 +601,20 @@ app.post("/:storename/addPurchase", async (req, res) => {
   });
 
   app.post("/:storename/orderReceived", async (req, res) => {
-    const storename = req.params;
+    const { storename } = req.params;
     try {
         const { purchaseOrderid, isNew } = req.body;
+        console.log(purchaseOrderid, isNew, storename)
         await genpool.query(`USE \`${storename}\`;`);
         if(!isNew){
+          console.log('hello')
           await genpool.query(`
               UPDATE purchaseOrder
               SET orderStatus = 1
               WHERE purchaseOrderid = ?;
           `, [purchaseOrderid]);
         } else {
+          console.log("hello!")
           const [newProductDetails] = await genpool.query(`
             SELECT productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName
             FROM newProductPurchase
@@ -635,18 +638,18 @@ app.post("/:storename/addPurchase", async (req, res) => {
           if (result.success) {
             const addpurRes = await addPurchase(genpool, storename, 1, deliveryDate, orderDate, quantity, isNew, supplierID, productid)
             if(!addpurRes.success) {
-              res.send(500).json(addpurRes)
+              return res.send(500).json(addpurRes)
             }
           }
 
         // Return success response
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Order status updated successfully."
         });}
     } catch (err) {
         // Return error response
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: "An error occurred while updating the order status.",
             error: err.message // Optionally include the error message for debugging
