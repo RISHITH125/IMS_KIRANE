@@ -10,7 +10,6 @@ module.exports = {
             
             // Execute the query using the provided parameters
             const [result] = await pool.execute(query, [
-                productid,
                 productName,
                 price,
                 categoryName,
