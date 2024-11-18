@@ -16,7 +16,7 @@ const { newProdAdd } = require("./newProdPurchase.js");
 const { salesDisp } = require("./salesDisp.js");
 const { addSales } = require("./addSales.js");
 const { productSaleUpdate, afterPurchaseUpdate } = require("./triggers.js")
-
+const {fetchNewProdPurchase} = require("./newProdPurFetch.js")
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
 
 const client = new OAuth2Client(CLIENT_ID);
@@ -348,7 +348,6 @@ app.post("/:storename/addPurchase", async (req, res) => {
                   quantity,
                   supplierID,
                   supplierName,
-                  purchaseOrderid,
               );
 
               if (!newResult.success) {
@@ -656,6 +655,25 @@ app.post("/:storename/addPurchase", async (req, res) => {
         });
     }
   });
+
+  app.get('/:storename/fetchNewProdPurchase', async (req, res) => {
+    const { storename } = req.params;
+    const { productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName } = req.query;
+
+    try {
+        const result = await fetchNewProdPurchase(pool, storename, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName);
+        return res.status(result.success ? 200 : 500).json(result);
+    } catch (error) {
+        console.error("Error fetching new product purchase:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An error occurred while fetching new product purchase details.",
+            error: error.message
+        });
+    }
+});
+
+
 
   app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

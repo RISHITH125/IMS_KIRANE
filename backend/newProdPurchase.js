@@ -1,5 +1,5 @@
 module.exports = {
-    newProdAdd: async function (pool, storename, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName, purchaseOrderid) {
+    newProdAdd: async function (pool, storename, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName) {
         try {
             // Validate expiry date
             if (!expiry || expiry.trim() === "") {
@@ -21,7 +21,6 @@ module.exports = {
             
             // Execute the query using the provided parameters
             const [result] = await pool.execute(query, [
-                productid,
                 productName,
                 price,
                 categoryName,

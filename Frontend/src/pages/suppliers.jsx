@@ -138,14 +138,48 @@ const Suppliers = () => {
 
     const groupedOrders = groupOrdersByPurchaseOrder(filteredOrders.length > 0 ? filteredOrders : orders);
 
-    const markOrderAsCompleted = (orderID) => {
-        setOrders((prevOrders) =>
-            prevOrders.map((order) =>
-                order.purchaseOrderid === orderID
-                    ? { ...order, orderStatus: 1 }
-                    : order
-            )
-        );
+    const markOrderAsCompleted = async (orderID) => {
+        // Find the order to update
+        const orderToUpdate = orders.find(order => order.purchaseOrderid === orderID);
+        if (!orderToUpdate) {
+            console.error("Order not found:", orderID);
+            return;
+        }
+    
+        // Prepare the data for the POST request
+        const requestData = {
+            purchaseOrderid: orderID,
+            isNew: orderToUpdate.isNewProduct, // Assuming isNewProduct is a property of the order
+        };
+    
+        try {
+            const storename = profile?.storename; // Get the storename
+            const response = await fetch(`http://localhost:3000/${storename}/orderReceived`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Failed to mark order as completed: ${response.statusText}`);
+            }
+    
+            const result = await response.json();
+            console.log('Order received response:', result);
+    
+            // Update local state for orders
+            setOrders((prevOrders) =>
+                prevOrders.map((order) =>
+                    order.purchaseOrderid === orderID
+                        ? { ...order, orderStatus: 1 } // Update order status to completed
+                        : order
+                )
+            );
+        } catch (error) {
+            console.error('Error marking order as completed:', error);
+        }
     };
     // Adding a new order
     const handleNewOrder = async (orderData) => {
