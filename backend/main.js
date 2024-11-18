@@ -586,13 +586,13 @@ app.post("/:storename/addPurchase", async (req, res) => {
   });
 
   app.post("/:storename/orderReceived", async (req, res) => {
-    const storename = req.params;
+    const { storename } = req.params;
     try {
         const { purchaseOrderid, isNew } = req.body;
-        console.log(purchaseOrderid, isNew)
-        // await genpool.query(`USE \`${storename}\`;`);
-        console.log('hello')
+        console.log(purchaseOrderid, isNew, storename)
+        await genpool.query(`USE \`${storename}\`;`);
         if(!isNew){
+          console.log('hello')
           await genpool.query(`
               UPDATE purchaseOrder
               SET orderStatus = 1

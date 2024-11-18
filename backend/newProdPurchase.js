@@ -4,8 +4,8 @@ module.exports = {
             // SQL query for inserting new product details
             await pool.query(`USE \`${storename}\`;`);
             const query = `
-                INSERT INTO newProductPurchase (productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierName)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO newProductPurchase (productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             
             // Execute the query using the provided parameters
@@ -19,7 +19,6 @@ module.exports = {
                 orderDate,
                 quantity,
                 supplierID,
-                purchaseOrderid,
                 supplierName
             ]);
 

@@ -350,7 +350,7 @@ module.exports = {
 
       await pool.query(`
                 CREATE TABLE newProductPurchase (
-    productid INT AUTO_INCREMENT PRIMARY KEY,
+    purchaseOrderid INT AUTO_INCREMENT PRIMARY KEY,
     productName VARCHAR(100) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
     categoryName VARCHAR(100) NOT NULL,
@@ -359,14 +359,10 @@ module.exports = {
     orderDate DATE,
     quantity DECIMAL(10, 2),
     supplierID INT,
-    purchaseOrderid INT,
     supplierName VARCHAR(100),  -- Added a comma here
-    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),
-    FOREIGN KEY (purchaseOrderid) REFERENCES purchaseOrder(purchaseOrderid)
+    FOREIGN KEY (supplierID) REFERENCES supplier(supplierID)
 );
             `);
-
-
       return pool;
     } catch (err) {
       console.error("Error creating store database:", err);
