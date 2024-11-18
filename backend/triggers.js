@@ -12,8 +12,6 @@ module.exports = {
             await pool.query(`USE \`${storename}\`;`);
             // Drop the trigger if it already exists
             await pool.query(`DROP TRIGGER IF EXISTS updateProductOnSale;`);
-            
-            // Create the trigger
             await pool.query(`
                 CREATE TRIGGER updateProductOnSale 
                 AFTER INSERT ON sales 
@@ -37,8 +35,6 @@ module.exports = {
             // await pool.query(`USE \`${storename}\`;`);
             // Drop the trigger if it already exists
             await pool.query(`DROP TRIGGER IF EXISTS afterPurchaseUpdate;`);
-
-            // Create the trigger
             await pool.query(`
                 CREATE TRIGGER afterPurchaseUpdate 
                 AFTER UPDATE ON purchaseOrder 
@@ -61,7 +57,7 @@ module.exports = {
         }
     },
 
-    expiryCheck: async function(pool, storename) {
+    expiryCheck: async function (pool, storename) {
         try {
             // Implement expiry check logic here
             return { success: true, message: 'Expiry check logic executed successfully.' };

@@ -54,7 +54,7 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                             />
                         </div>
                     ))}
-                    {['price', 'quantity', 'reorderLevel'].map((field) => (
+                                        {['price', 'quantity', 'reorderLevel'].map((field) => (
                         <div key={field}>
                             <label className="block font-semibold mb-1">{field}</label>
                             <input
@@ -68,9 +68,27 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                         </div>
                     ))}
                     <div>
+                        <label className="block font-semibold mb-1">Supplier Name</label>
+                        <select
+                            name="supplierName"
+                            value={formData.supplierName}
+                            onChange={handleChange}
+                            required
+                            className="select select-sm select-bordered w-full bg-gray-100"
+                        >
+                            <option value="" disabled>
+                                Select a Supplier
+                            </option>
+                            {suppliers.map((supplier) => (
+                                <option key={supplier.id} value={supplier.name}>
+                                    {supplier.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
                         <label className="block font-semibold mb-1">Expiry Date</label>
-                        <div className="flex items-center space-x-2">
-                            <Calendar size={24} className="text-gray-500" />
+                        <div className="relative">
                             <input
                                 type="date"
                                 name="expiry"
@@ -79,24 +97,23 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                                 required
                                 className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
                             />
+                            <Calendar className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400" />
                         </div>
                     </div>
                     <div>
-                        <label className="block font-semibold mb-1">Supplier</label>
-                        <select
-                            name="supplierName"
-                            value={formData.supplierName}
-                            onChange={handleChange}
-                            required
-                            className="input input-md input-bordered w-full p-2 border rounded bg-gray-100 mb-2"
-                        >
-                            <option value="" disabled className="font-semibold text-gray-800">Select Supplier</option>
-                            {suppliers.map((supplier,index) => (
-                                <option key={index} value={supplier.supplierName}>{supplier.supplierName}</option>
-                            ))}
-                        </select>
+                        <label className="block font-semibold mb-1">Date Added</label>
+                        <input
+                            type="text"
+                            name="dateadded"
+                            value={formData.dateadded}
+                            readOnly
+                            className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
+                        />
                     </div>
-                    <button type="submit" className="btn border-none w-full bg-blue-500 text-white py-2 rounded font-bold">
+                    <button
+                        type="submit"
+                        className="btn btn-md border-none bg-blue-500 text-white py-2 px-4 rounded font-bold w-full"
+                    >
                         Add Product
                     </button>
                 </form>
