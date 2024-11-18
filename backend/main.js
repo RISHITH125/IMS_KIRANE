@@ -287,7 +287,7 @@ app.post("/:storename/addPurchase", async (req, res) => {
       const rows = req.body.data;
       let result;
       let successCount = 0; // To count successful operations
-      console.log(rows)
+      console.log("Received rows:", JSON.stringify(rows, null, 2)); // Log the entire rows for debugging
 
       for (const jsonContent of rows) {
           const {
@@ -307,22 +307,36 @@ app.post("/:storename/addPurchase", async (req, res) => {
               orderStatus,
           } = jsonContent;
 
-          
+          console.log("Processing item:", JSON.stringify(jsonContent, null, 2)); // Log individual item
+
+          // Check the expiry value before proceeding
+          console.log("Expiry value:", expiry);
+
           if (!isNewProduct) {
-            const supplierid = await supplierNametoID(genpool, supplierName, storename);
-            const productID = await productNametoID(genpool, productName, storename);
-            result = await addPurchase(
-             genpool,
-             storename,
-             orderStatus,
-             deliveryDate,
-             orderDate,
-             quantity,
-             isNewProduct,
-             supplierid,
-             productID
-            );
+              const supplierid = await supplierNametoID(genpool, supplierName, storename);
+              const productID = await productNametoID(genpool, productName, storename);
+              result = await addPurchase(
+                  genpool,
+                  storename,
+                  orderStatus,
+                  deliveryDate,
+                  orderDate,
+                  quantity,
+                  isNewProduct,
+                  supplierid,
+                  productID
+              );
           } else {
+              // Validate expiry before passing it
+              if (!expiry || expiry.trim() === "") {
+                  console.error("Invalid expiry date for new product:", expiry);
+                  return res.status(400).json({
+                      success: false,
+                      message: "Invalid expiry date provided for new product.",
+                  });
+              }
+
+              console.log("Adding new product with expiry:", expiry); // Debug log for expiry
               const newResult = await newProdAdd(
                   genpool,
                   storename,
@@ -334,7 +348,8 @@ app.post("/:storename/addPurchase", async (req, res) => {
                   orderDate,
                   quantity,
                   supplierID,
-                  supplierName
+                  supplierName,
+                  purchaseOrderid,
               );
 
               if (!newResult.success) {
@@ -358,7 +373,7 @@ app.post("/:storename/addPurchase", async (req, res) => {
       });
 
   } catch (err) {
-      console.error(err); // Log the error for debugging
+      console.error("Error in add Purchase route:", err); // Log the error for debugging
       res.status(500).json({
           success: false,
           message: "Couldn't add new purchase details due to database error",

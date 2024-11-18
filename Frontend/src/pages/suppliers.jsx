@@ -170,7 +170,7 @@ const Suppliers = () => {
                 categoryName: order.categoryName,
                 reorderLevel: order.reorderLevel,
                 expiry: order.expiry,
-                isNew: order.isNewProduct ? 1 : 0,
+                isNewProduct: order.isNewProduct ? 1 : 0,
                 orderStatus: order.orderStatus,
             })),
         };
@@ -187,35 +187,32 @@ const Suppliers = () => {
     
             if (!response.ok) {
                 throw new Error(`Failed to add purchase: ${response.statusText}`);
-                
             }
     
             const result = await response.json();
             console.log('Purchase addition response:', result);
-            try {
-                const response = await fetch(`http://localhost:3000/${storename}/suppliers`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        setSuppliers(data.data);
-                        localStorage.setItem('suppliers', JSON.stringify(data.data));
-                    } else {
-                        console.error('Failed to fetch suppliers:', data.data);
-                    }
+    
+            // Fetch suppliers after successful purchase addition
+            const supplierResponse = await fetch(`http://localhost:3000/${storename}/suppliers`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+    
+            if (supplierResponse.ok) {
+                const data = await supplierResponse.json();
+                if (data.success) {
+                    setSuppliers(data.data);
+                    localStorage.setItem('suppliers', JSON.stringify(data.data));
                 } else {
-                    console.error('Error fetching suppliers. Status:', response.status);
+                    console.error('Failed to fetch suppliers:', data.data);
                 }
-            } catch (error) {
-                console.error('Error during fetchSuppliers:', error);
+            } else {
+                console.error('Error fetching suppliers. Status:', supplierResponse.status);
             }
         } catch (error) {
-            console.error('Error adding purchase:', error);
+            console.error('Error adding purchase or fetching suppliers:', error);
         }
     
         closePlaceOrderForm();

@@ -293,6 +293,17 @@ const PlaceOrder = ({ onClose, suppliers, products, onPlaceOrder, maxOrderID }) 
                                             className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
                                         />
                                     </div>
+                                    <div>
+                                        <label className="block font-semibold mb-1">Expiry Date</label>
+                                        <input
+                                            type="date"
+                                            name="expiry"
+                                            value={formData[currentProductIndex].expiry}
+                                            onChange={handleChange}
+                                            required
+                                            className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
+                                        />
+                                    </div>
                                 </div>
                             )}
                             {/* Quantity input */}
