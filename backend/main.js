@@ -118,6 +118,11 @@ let genpool = mysql.createPool({
         if (!afterPurUp.success) {
           return res.status(500).json({ success: false, message: afterPurUp})
         }
+
+        const expiryCheckres = await expiryCheck(genpool, storename);
+        if (!expiryCheckres.success) {
+            return res.status(500).json({ success: false, message: expiryCheckres.message });
+        }
         // Check the result of the login creation
         if (result.success) {
             res.status(200).json(result);
@@ -714,6 +719,21 @@ app.post("/:storename/addPurchase", async (req, res) => {
         });
     }
   });
+
+  app.post("/:storename/checkExpiredProducts", async (req, res) => {
+    const { storename } = req.params;
+    try {
+        const result = await genpool.query("CALL CheckExpiredProducts(?);", [storename]);
+        return res.status(200).json(result);
+    } catch (error) {
+        console.error('Error checking expired products:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error checking expired products.',
+            error: error.message,
+        });
+    }
+});
 
   app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

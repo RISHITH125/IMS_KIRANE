@@ -315,7 +315,7 @@ module.exports = {
                 );
             `);
 
-            await pool.query(`
+      await pool.query(`
                 CREATE TABLE IF NOT EXISTS sales (
                     salesid INT AUTO_INCREMENT PRIMARY KEY,    -- Unique identifier for each sale
                     productid INT,                             -- Foreign key to the Product table
@@ -342,11 +342,15 @@ module.exports = {
                     FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),
                     FOREIGN KEY (productID) REFERENCES product(productid)
                 )`);
-      console.log(
-        `Database and user, products, category, supplier table for store '${storename}' created successfully.`
-      );
 
-
+      await pool.query(`CREATE TABLE alerts (
+    alertID INT AUTO_INCREMENT PRIMARY KEY,
+    productid INT,
+    productName VARCHAR(255),
+    expiryDate DATE,
+    alertDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (productid) REFERENCES products(productid) -- Assuming you have a products table
+);`);
 
       await pool.query(`
                 CREATE TABLE newProductPurchase (
@@ -363,6 +367,13 @@ module.exports = {
     FOREIGN KEY (supplierID) REFERENCES supplier(supplierID)
 );
             `);
+
+            console.log(
+              `Database and user, products, category, supplier table for store '${storename}' created successfully.`
+            );
+      
+
+
       return pool;
     } catch (err) {
       console.error("Error creating store database:", err);

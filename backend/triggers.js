@@ -53,128 +53,35 @@ module.exports = {
 
     expiryCheck: async function (pool, storename) {
         try {
-            // Implement expiry check logic here
+            // Ensure the stored procedure does not already exist before creating it
+            await pool.query(`DROP PROCEDURE IF EXISTS CheckExpiredProducts;`);
+    
+            await pool.query(`
+                CREATE PROCEDURE CheckExpiredProducts(IN storeName VARCHAR(255))
+                BEGIN
+                    DECLARE currentDate DATE;
+    
+                    -- Get the current date
+                    SET currentDate = CURDATE();
+    
+                    -- Insert expired products into alerts table
+                    INSERT INTO alerts (productID, productName, expiryDate)
+                    SELECT p.productID, p.productName, p.expiry
+                    FROM products p
+                    WHERE p.expiry < currentDate
+                      AND NOT EXISTS (
+                          SELECT 1 FROM alerts a WHERE a.productID = p.productID
+                      ); -- Avoid inserting duplicates in alerts
+                END;
+            `);
+    
+            // Optionally, call the procedure to execute it immediately after creation
+            // await pool.query("CALL CheckExpiredProducts(?);", [storename]);
+    
             return { success: true, message: 'Expiry check logic executed successfully.' };
         } catch (err) {
             console.error('Error in expiry check:\n', err);
             return { success: false, message: 'Error in expiry check.', error: err.message };
-        }
-    },
-
-    setFunction: async function (pool, storename) {
-        try {
-            await pool.query(`USE \`${storename}\`;`);
-
-            // Updated function: checkProductExists
-            await pool.query(`
-                CREATE FUNCTION checkProductExists(p_productid INT, p_supplierID INT)
-                RETURNS BOOLEAN
-                DETERMINISTIC
-                READS SQL DATA
-                BEGIN
-                    DECLARE productCount INT;
-                    SELECT COUNT(*) INTO productCount
-                    FROM product
-                    WHERE productid = p_productid AND supplierID = p_supplierID;
-                    RETURN productCount > 0;
-                END;
-            `);
-
-            // Updated function: checkCategoryExists
-            await pool.query(`
-                CREATE FUNCTION checkCategoryExists(p_categoryName VARCHAR(50))
-                RETURNS BOOLEAN
-                DETERMINISTIC
-                READS SQL DATA
-                BEGIN
-                    DECLARE categoryCount INT;
-                    SELECT COUNT(*) INTO categoryCount
-                    FROM category
-                    WHERE categoryName = p_categoryName;
-                    RETURN categoryCount > 0;
-                END;
-            `);
-
-            // Procedure to insert category if it doesn't exist
-            await pool.query(`
-                CREATE PROCEDURE insertCategoryIfNotExists(IN p_categoryName VARCHAR(50), OUT p_categoryID INT)
-                BEGIN
-                    DECLARE catExists BOOLEAN;
-                    SET catExists = checkCategoryExists(p_categoryName);
-                    IF catExists THEN
-                        SELECT categoryID INTO p_categoryID
-                        FROM category
-                        WHERE categoryName = p_categoryName;
-                    ELSE
-                        INSERT INTO category (categoryName) VALUES (p_categoryName);
-                        SET p_categoryID = LAST_INSERT_ID();
-                    END IF;
-                END;
-            `);
-
-            // Procedure to insert new products
-            await pool.query(`
-                CREATE PROCEDURE insertNewProduct(
-                    IN p_productName VARCHAR(100),
-                    IN p_price DECIMAL(10,2),
-                    IN p_supplierID INT,
-                    IN p_categoryID INT,
-                    IN p_quantity DECIMAL(10,2),
-                    IN p_reorderLevel DECIMAL(10,2),
-                    IN p_expiry DATE
-                )
-                BEGIN
-                    INSERT INTO product (productName, price, supplierID, categoryID, quantity, reorderLevel, expiry, dateAdded)
-                    VALUES (p_productName, p_price, p_supplierID, p_categoryID, p_quantity, p_reorderLevel, p_expiry, NOW());
-                END;
-            `);
-
-            // Procedure to update product quantity
-            await pool.query(`
-                CREATE PROCEDURE updateProductQuantity(IN p_productid INT, IN p_quantity DECIMAL(10,2))
-                BEGIN
-                    UPDATE product
-                    SET quantity = quantity + p_quantity
-                    WHERE productid = p_productid;
-                END;
-            `);
-
-            // Trigger for after purchase update
-            await pool.query(`
-                CREATE TRIGGER afterPurchaseUpdate
-                AFTER INSERT ON purchaseOrder
-                FOR EACH ROW
-                BEGIN
-                    DECLARE existingCategoryID INT;
-
-                    IF NEW.orderStatus = 1 THEN
-                        IF checkProductExists(NEW.productid, NEW.supplierID) THEN
-                            CALL updateProductQuantity(NEW.productid, NEW.quantity);
-                        ELSE
-                            CALL insertCategoryIfNotExists(
-                                (SELECT categoryName FROM newProductPurchase WHERE productid = NEW.productid),
-                                existingCategoryID
-                            );
-
-                            CALL insertNewProduct(
-                                (SELECT productName FROM newProductPurchase WHERE productid = NEW.productid),
-                                (SELECT price FROM newProductPurchase WHERE productid = NEW.productid),
-                                NEW.supplierID,
-                                existingCategoryID,
-                                NEW.quantity,
-                                (SELECT reorderLevel FROM newProductPurchase WHERE productid = NEW.productid),
-                                (SELECT expiry FROM newProductPurchase WHERE productid = NEW.productid)
-                            );
-                        END IF;
-                    END IF;
-                END;
-            `);
-
-            console.log('Functions and procedures created successfully.');
-            return { success: true, message: 'Functions and procedures created successfully.' };
-        } catch (err) {
-            console.error('Error creating functions or procedures:\n', err);
-            return { success: false, message: 'Error creating functions or procedures.', error: err.message };
         }
     }
 };

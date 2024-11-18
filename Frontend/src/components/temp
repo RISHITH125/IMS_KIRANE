@@ -1,12 +1,17 @@
-import { useState } from 'react';
-import { Search, Bell, User, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Bell, User, X, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+
 const Searchbar = ({ data, onFilter }) => {
     const { profile, setProfile } = useUser();
-
     const [searchQuery, setSearchQuery] = useState('');
     const [isFiltered, setIsFiltered] = useState(false);
+    const [alerts, setAlerts] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [showAlerts, setShowAlerts] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     const handleSearch = (e) => {
         const query = e.target.value;
@@ -31,6 +36,12 @@ const Searchbar = ({ data, onFilter }) => {
         onFilter(data); // Reset to original data
         setIsFiltered(false);
     };
+
+    const handleLogout = () => {
+        setProfile(null); // Clear profile data to simulate logout
+        window.location.href = '/login'; // Redirect to login page
+    };
+
     useEffect(() => {
         const fetchAlerts = async () => {
             setLoading(true);
@@ -50,7 +61,7 @@ const Searchbar = ({ data, onFilter }) => {
     }, [profile.storename]);
 
     return (
-        <div className="flex h-14 bg-slate-50 items-center px-4 shadow-md border-b-2">
+        <div className="flex h-14 bg-slate-50 items-center px-4 shadow-md border-b-2 relative">
             {/* Search Bar */}
             <div className="flex items-center w-full max-w-xs bg-white rounded-xl border border-transparent px-3 py-2 focus-within:border-gray-300 transition-colors">
                 <Search className="text-gray-500 mr-2" />
@@ -68,7 +79,7 @@ const Searchbar = ({ data, onFilter }) => {
                     />
                 )}
             </div>
-            <div className="flex items-center ml-auto space-x-4">
+            <div className="flex items-center ml-auto space-x-4 relative">
                 {/* Alerts Icon */}
                 <button
                     onClick={() => setShowAlerts(!showAlerts)}
@@ -123,11 +134,34 @@ const Searchbar = ({ data, onFilter }) => {
                 )}
 
                 {/* Profile Icon */}
-                <Link to={`/${profile?.storename || 'default'}/profile`} className="flex items-center">
-                    <div className="w-10 h-10 rounded-full border-gray-500 border-2 bg-white flex items-center justify-center overflow-hidden">
+                <div className="relative">
+                    <button
+                        onClick={() => setShowProfileMenu(!showProfileMenu)}
+                        className="w-10 h-10 rounded-full border-gray-500 border-2 bg-white flex items-center justify-center overflow-hidden"
+                    >
                         <User className="text-gray-500 w-6 h-6" />
-                    </div>
-                </Link>
+                    </button>
+
+                    {/* Profile Dropdown */}
+                    {showProfileMenu && (
+                        <div className="absolute right-0 top-12 w-48 bg-white shadow-md rounded-lg border overflow-hidden z-50">
+                            <ul>
+                                <li className="p-4 hover:bg-gray-100 transition-colors">
+                                    <Link to={`/${profile?.storename || 'default'}/profile`}>
+                                        View Profile
+                                    </Link>
+                                </li>
+                                <li
+                                    className="p-4 text-red-500 hover:bg-red-100 transition-colors cursor-pointer"
+                                    onClick={handleLogout}
+                                >
+                                    <LogOut className="inline-block mr-2" />
+                                    Logout
+                                </li>
+                            </ul>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
