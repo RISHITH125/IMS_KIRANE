@@ -16,6 +16,7 @@ const Categories = () => {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const { suppliers } = useSuppliers();
 
+  const [tempsuppliers, setTempSuppliers] = useState();
 
 
 
@@ -33,7 +34,16 @@ const Categories = () => {
 
   useEffect(() => {
     setFilteredProducts(productsData)
-  }, [productsData,suppliers]);
+  }, [productsData]);
+
+  useEffect(() => {
+    if(suppliers.length > 0){
+      setTempSuppliers(suppliers)
+    }
+    else{
+      setTempSuppliers(localStorage.getItem('suppliers') ? JSON.parse(localStorage.getItem('suppliers')) : [])
+    }
+  },[suppliers])
 
 
 
@@ -325,7 +335,7 @@ const Categories = () => {
                 <button onClick={handleSubmit} className="btn btn-md border-none mt-6 bg-blue-500 text-white py-2 px-4 rounded ml-auto mr-auto font-bold">
                   Submit Changes <Check />
                 </button>
-                {isAddProductOpen && <AddProductForm onClose={closeAddProductForm} suppliers={suppliers} products={productsData} onAddProduct={handleAddProduct} />}
+                {isAddProductOpen && <AddProductForm onClose={closeAddProductForm} suppliers={tempsuppliers} products={productsData} onAddProduct={handleAddProduct} />}
               </div>
 
             </div>

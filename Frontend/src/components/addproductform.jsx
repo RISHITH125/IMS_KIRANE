@@ -103,7 +103,7 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                     <div>
                         <label className="block font-semibold mb-1">Date Added</label>
                         <input
-                            type="text"
+                            type="date"
                             name="dateadded"
                             value={formData.dateadded}
                             readOnly

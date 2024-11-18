@@ -10,6 +10,7 @@ import { useOrders } from '../context/OrdersContext';
 import AddSupplierForm from '../components/addSupplierform';
 import { useSuppliers } from '../context/SupplierContext';
 
+
 const Suppliers = () => {
     const { profile } = useUser();
     let storename = profile?.storename; // Declare storename at the top
@@ -147,10 +148,53 @@ const Suppliers = () => {
         );
     };
     // Adding a new order
-    const handleNewOrder = (orderData) => {
+    const handleNewOrder = async (orderData) => {
+        // Update local state for orders
         setOrders((prevOrders) => [...prevOrders, ...orderData]);
         setNewOrder((prevOrders) => [...prevOrders, ...orderData]);
         localStorage.setItem('orders', JSON.stringify([...orders, ...orderData]));
+    
+        // Prepare the data for the POST request
+        const storename = profile?.storename;
+        const requestData = {
+            data: orderData.map(order => ({
+                purchaseOrderid: order.purchaseOrderid,
+                deliveryDate: order.deliveryDate,
+                orderDate: order.orderDate,
+                quantity: order.quantity,
+                supplierID: order.supplierID,
+                supplierName: order.supplierName,
+                productid: order.productid,
+                productName: order.productName,
+                price: order.price,
+                categoryName: order.categoryName,
+                reorderLevel: order.reorderLevel,
+                expiry: order.expiry,
+                isNew: order.isNewProduct ? 1 : 0,
+                orderStatus: order.orderStatus,
+            })),
+        };
+    
+        try {
+            // Send POST request to addPurchase
+            const response = await fetch(`http://localhost:3000/${storename}/addPurchase`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Failed to add purchase: ${response.statusText}`);
+            }
+    
+            const result = await response.json();
+            console.log('Purchase addition response:', result);
+        } catch (error) {
+            console.error('Error adding purchase:', error);
+        }
+    
         closePlaceOrderForm();
     };
     // console.log(orders);
