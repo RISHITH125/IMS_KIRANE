@@ -359,10 +359,8 @@ module.exports = {
     orderDate DATE,
     quantity DECIMAL(10, 2),
     supplierID INT,
-    purchaseOrderid INT,
     supplierName VARCHAR(100),  -- Added a comma here
     FOREIGN KEY (supplierID) REFERENCES supplier(supplierID),
-    FOREIGN KEY (purchaseOrderid) REFERENCES purchaseOrder(purchaseOrderid)
 );
             `);
 

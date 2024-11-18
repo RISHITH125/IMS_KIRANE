@@ -1,25 +1,50 @@
 module.exports = {
-    newProdAdd: async function (pool, storename, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, purchaseOrderid, supplierName) {
+    newProdAdd: async function (pool, storename, productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName, purchaseOrderid) {
         try {
-            // SQL query for inserting new product details
+            // Validate expiry date
+            if (!expiry || expiry.trim() === "") {
+                console.error("Expiry date is invalid:", expiry);
+                throw new Error("Invalid expiry date provided.");
+            }
+
+            // Convert expiry to a valid date format if necessary
+            const formattedExpiry = new Date(expiry);
+            if (isNaN(formattedExpiry.getTime())) {
+                throw new Error("Invalid expiry date format.");
+            }
+
             await pool.query(`USE \`${storename}\`;`);
             const query = `
-                INSERT INTO newProductPurchase (productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierName)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO newProductPurchase (productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName, purchaseOrderid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             `;
             
+            // Log the parameters being sent
+            console.log("Executing query with parameters:", [
+                productName,
+                price,
+                categoryName,
+                reorderLevel,
+                formattedExpiry,
+                orderDate,
+                quantity,
+                supplierID,
+                supplierName,
+                purchaseOrderid
+            ]);
+
             // Execute the query using the provided parameters
             const [result] = await pool.execute(query, [
                 productName,
                 price,
                 categoryName,
                 reorderLevel,
-                expiry,
+                formattedExpiry, // Use the formatted date
                 orderDate,
                 quantity,
                 supplierID,
-                purchaseOrderid,
-                supplierName
+                supplierName,
+                purchaseOrderid // Include purchaseOrderid
             ]);
 
             // Return the result (insert ID or confirmation of success)
