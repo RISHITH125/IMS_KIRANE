@@ -34,29 +34,37 @@ module.exports = {
     quantity,
     reorderLevel,
     expiryDate
-  ) {
-    // dateAdded is the day that the user adds the product.
+) {
     try {
-      await pool.query(`USE \`${storeName}\`;`);
-      const dateAdded = new Date().toISOString().split("T")[0];
-      await pool.query(
-        `INSERT INTO product (productName, price, supplierID, categoryID, quantity, reorderLevel, expiry, dateadded) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          productName,
-          price,
-          supplierID,
-          categoryID,
-          quantity,
-          reorderLevel,
-          expiryDate,
-          dateAdded,
-        ]
-      );
+        await pool.query(`USE \`${storeName}\`;`);
+        const dateAdded = new Date().toISOString().split("T")[0];
+        
+        // Perform the insert operation
+        await pool.query(
+            `INSERT INTO product (productName, price, supplierID, categoryID, quantity, reorderLevel, expiry, dateadded) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                productName,
+                price,
+                supplierID,
+                categoryID,
+                quantity,
+                reorderLevel,
+                expiryDate,
+                dateAdded,
+            ]
+        );
+
+        // Get the last inserted product ID
+        const [result] = await pool.query(`SELECT LAST_INSERT_ID() AS productid;`);
+        const productId = result[0].productid;
+
+        return { success: true, message: "Product inserted successfully.", productId };
     } catch (err) {
-      console.error("Couldn't insert details of the product...", err);
+        console.error("Couldn't insert details of the product...", err);
+        return { success: false, message: "Error inserting product.", error: err.message };
     }
-  },
+},
 
   updateProdQuant: async function (pool, productid, newQuantity, storeName) {
     try {

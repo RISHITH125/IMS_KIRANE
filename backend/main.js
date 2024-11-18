@@ -603,50 +603,79 @@ app.post("/:storename/addPurchase", async (req, res) => {
   app.post("/:storename/orderReceived", async (req, res) => {
     const { storename } = req.params;
     try {
-        const { purchaseOrderid, isNew } = req.body;
-        console.log(purchaseOrderid, isNew, storename)
+        let { purchaseOrderid, isNew } = req.body;
+        isNew = isNew ?? 1; // Default to 1 if isNew is undefined
+        console.log(purchaseOrderid, isNew, storename);
+        
         await genpool.query(`USE \`${storename}\`;`);
-        if(!isNew){
-          console.log('hello')
-          await genpool.query(`
-              UPDATE purchaseOrder
-              SET orderStatus = 1
-              WHERE purchaseOrderid = ?;
-          `, [purchaseOrderid]);
-        } else {
-          console.log("hello!")
-          const [newProductDetails] = await genpool.query(`
-            SELECT productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName
-            FROM newProductPurchase
-            WHERE purchaseOrderid = ?;
-        `, [purchaseOrderid]);
-
-          if (newProductDetails.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No new product details found for the given purchaseOrderid."
+        
+        if (!isNew) {
+            console.log('Updating order status...');
+            await genpool.query(`
+                UPDATE purchaseOrder
+                SET orderStatus = 1
+                WHERE purchaseOrderid = ?;
+            `, [purchaseOrderid]);
+            return res.status(200).json({
+                success: true,
+                message: "Order status updated successfully."
             });
-          }
+        } else {
+            console.log("Fetching new product details...");
+            const [newProductDetails] = await genpool.query(`
+                SELECT productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName
+                FROM newProductPurchase
+                WHERE purchaseOrderid = ?;
+            `, [purchaseOrderid]);
 
-          const { productName, price, categoryName, reorderLevel, expiry, quantity, supplierID, supplierName } = newProductDetails[0]
-          
-          // you need to insert into product table
-          // you need to fetch productid and supplierid, 
-          // you need to insert this into purchaseOrder table.
-          const categoryID = categoryNametoID(storename, categoryName)
-          const result = await productCreate(storename, genpool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiry)
-          if (result.success) {
-            const addpurRes = await addPurchase(genpool, storename, 1, deliveryDate, orderDate, quantity, isNew, supplierID, productid)
-            if(!addpurRes.success) {
-              return res.send(500).json(addpurRes)
+            if (newProductDetails.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No new product details found for the given purchaseOrderid."
+                });
             }
-          }
 
-        // Return success response
-        return res.status(200).json({
-            success: true,
-            message: "Order status updated successfully."
-        });}
+            const { productName, price, categoryName, reorderLevel, expiry, orderDate,quantity, supplierID , supplierName} = newProductDetails[0];
+            await categoryAdd(genpool, null, categoryName, storename);
+            
+            const categoryID = await categoryNametoID(genpool, categoryName, storename);
+            console.log('Category ID:', categoryID);
+
+            if (categoryID === null) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Category not found."
+                });
+            }
+
+            const result = await productCreate(storename, genpool, productName, price, supplierID, categoryID, quantity, reorderLevel, expiry);
+            console.log(result);
+
+            if (!result.success) {
+                return res.status(500).json({
+                    success: false,
+                    message: result.message, // Error message from productCreate
+                    error: result.error // Include error message if available
+                });
+            }
+
+            const addpurRes = await addPurchase(genpool, storename, 1, orderDate, orderDate, quantity, isNew, supplierID, result.productId);
+            console.log(addpurRes);
+            if (!addpurRes.success) {
+                return res.status(500).json({
+                    success: false,
+                    message: "Couldn't insert purchase details.",
+                    error: addpurRes.error // Include error message if available
+                });
+            }
+
+            // Return success response including the new product ID
+            return res.status(200).json({
+                success: true,
+                message: "Order status updated successfully.",
+                productId: result.productId // Include the product ID in the response
+            });
+        }
     } catch (err) {
         // Return error response
         return res.status(500).json({
@@ -655,7 +684,7 @@ app.post("/:storename/addPurchase", async (req, res) => {
             error: err.message // Optionally include the error message for debugging
         });
     }
-  });
+});
 
   app.get("/:storename/fetchNewProdPur", async (req, res) => {
     const { storename } = req.params;

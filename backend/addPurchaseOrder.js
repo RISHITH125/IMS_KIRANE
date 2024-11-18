@@ -3,7 +3,9 @@
 module.exports = {
     addPurchase: async function (pool, storename, orderStatus, deliveryDate, orderDate, quantity, isNew, supplierID, productid) {
         try {
+            console.log('before use storename...');
             await pool.query(`USE \`${storename}\`;`);
+            console.log('after use storename...');
             const [rows] = await pool.query(
                 `INSERT INTO purchaseOrder (orderStatus, deliveryDate, orderDate, quantity, isNew, supplierID, productid) VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [orderStatus, deliveryDate, orderDate, quantity, isNew, supplierID, productid] // Added productid here
