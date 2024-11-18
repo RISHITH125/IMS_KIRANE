@@ -79,9 +79,9 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                             <option value="" disabled>
                                 Select a Supplier
                             </option>
-                            {suppliers.map((supplier) => (
-                                <option key={supplier.id} value={supplier.name}>
-                                    {supplier.name}
+                            {suppliers.map((supplier,index) => (
+                                <option key={supplier.supplierID} value={supplier.supplierName}>
+                                    {supplier.supplierName}
                                 </option>
                             ))}
                         </select>

@@ -32,7 +32,7 @@ const { addPurchase } = require("./addPurchaseOrder.js");
 const { newProdAdd } = require("./newProdPurchase.js");
 const { salesDisp } = require("./salesDisp.js");
 const { addSales } = require("./addSales.js");
-const { productSaleUpdate,setFunction } = require('./triggers.js');
+const { productSaleUpdate,setFunction ,afterPurchaseUpdate} = require('./triggers.js');
 
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
@@ -136,9 +136,14 @@ let genpool = mysql.createPool({
             return res.status(500).json({ success: false, message: productSaleResult.message });
         }
 
-        const setFunctionResult = await setFunction(genpool, storename);
-        if (!setFunctionResult.success) {
-            return res.status(500).json({ success: false, message: setFunctionResult.message });
+        // const setFunctionResult = await setFunction(genpool, storename);
+        // if (!setFunctionResult.success) {
+        //     return res.status(500).json({ success: false, message: setFunctionResult.message });
+        // }
+
+        const afterPurchaseUpdateResult = await afterPurchaseUpdate(genpool);
+        if (!afterPurchaseUpdateResult.success) {
+            return res.status(500).json({ success: false, message: afterPurchaseUpdateResult.message });
         }
 
         // Check the result of the login creation

@@ -33,7 +33,7 @@ const Categories = () => {
 
   useEffect(() => {
     setFilteredProducts(productsData)
-  }, [productsData]);
+  }, [productsData,suppliers]);
 
 
 

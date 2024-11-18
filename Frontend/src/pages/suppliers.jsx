@@ -57,7 +57,7 @@ const Suppliers = () => {
         };
 
         fetchSuppliers();
-    }, [storename]);
+    }, [storename,newSupplier]);
 
     // Fetch orders
     useEffect(() => {
