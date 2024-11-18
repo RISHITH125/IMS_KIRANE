@@ -72,13 +72,13 @@ const AddSalesForm = ({ products }) => {
             }));
           }}
           required
-          className="select select-sm select-bordered w-full p-2 border rounded bg-gray-100"
+          className="select select-sm select-bordered w-full p-2 border rounded bg-gray-100 h-auto"
         >
           <option value="" disabled>
             Select a product
           </option>
-          {products.map((product) => (
-            <option key={product.productName} value={product.productName}>
+          {products.map((product,index) => (
+            <option key={index} value={product.productName}>
               {product.productName}
             </option>
           ))}
@@ -87,7 +87,7 @@ const AddSalesForm = ({ products }) => {
 
       {/* Quantity Sold */}
       <div>
-        <label className="block font-semibold mb-1 text-gray-600">Quantity Sold</label>
+        <label className="block font-semibold mb-1 text-gray-600 h-auto">Quantity Sold</label>
         <input
           type="number"
           name="quantitySold"
@@ -107,7 +107,6 @@ const AddSalesForm = ({ products }) => {
           value={formData.salesPrice}
           onChange={handleChange}
           required
-          readOnly
           className="input input-sm input-bordered w-full p-2 border rounded bg-gray-200"
         />
       </div>
