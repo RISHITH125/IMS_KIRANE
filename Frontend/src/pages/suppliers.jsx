@@ -26,40 +26,44 @@ const Suppliers = () => {
     const [filteredOrders, setFilteredOrders] = useState([]);
 
     // Fetch suppliers
-    useEffect(() => {
-        const fetchSuppliers = async () => {
-            if (!storename) {
-                console.error("Store name is not available");
-                return;
+    // Fetch orders and new product purchases
+useEffect(() => {
+    const fetchOrdersAndNewPurchases = async () => {
+        if (!storename) {
+            console.error('Store name is not available');
+            return;
+        }
+
+        try {
+            // Fetch existing purchase orders
+            const ordersResponse = await fetch(`http://localhost:3000/${storename}/purchaseOrders`);
+            const ordersData = await ordersResponse.json();
+
+            if (ordersResponse.ok && ordersData.success) {
+                setOrders(ordersData.data);
+                localStorage.setItem('orders', JSON.stringify(ordersData.data));
+            } else {
+                console.error('Failed to fetch purchase orders');
             }
 
-            try {
-                const response = await fetch(`http://localhost:3000/${storename}/suppliers`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
+            // Fetch new product purchases
+            const newPurchasesResponse = await fetch(`http://localhost:3000/${storename}/fetchNewProdPur`);
+            const newPurchasesData = await newPurchasesResponse.json();
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        setSuppliers(data.data);
-                        localStorage.setItem('suppliers', JSON.stringify(data.data));
-                    } else {
-                        console.error('Failed to fetch suppliers:', data.data);
-                    }
-                } else {
-                    console.error('Error fetching suppliers. Status:', response.status);
-                }
-            } catch (error) {
-                console.error('Error during fetchSuppliers:', error);
+            if (newPurchasesResponse.ok && newPurchasesData.success) {
+                // Combine existing orders with new product purchases
+                setOrders((prevOrders) => [...prevOrders, ...newPurchasesData.data]);
+                localStorage.setItem('orders', JSON.stringify([...ordersData.data, ...newPurchasesData.data]));
+            } else {
+                console.error('Failed to fetch new product purchases:', newPurchasesData.message);
             }
-        };
+        } catch (error) {
+            console.error('Error fetching orders or new product purchases:', error);
+        }
+    };
 
-        fetchSuppliers();
-    }, [storename,newSupplier]);
-
+    fetchOrdersAndNewPurchases();
+}, [storename]);
     // Fetch orders
     useEffect(() => {
         const fetchOrders = async () => {
@@ -149,7 +153,7 @@ const Suppliers = () => {
         // Prepare the data for the POST request
         const requestData = {
             purchaseOrderid: orderID,
-            isNew: orderToUpdate.isNewProduct, // Assuming isNewProduct is a property of the order
+            isNew: (orderToUpdate.isNewProduct) ?1 : 0, // Assuming isNewProduct is a property of the order
         };
     
         try {
@@ -183,11 +187,6 @@ const Suppliers = () => {
     };
     // Adding a new order
     const handleNewOrder = async (orderData) => {
-        // Update local state for orders
-        setOrders((prevOrders) => [...prevOrders, ...orderData]);
-        setNewOrder((prevOrders) => [...prevOrders, ...orderData]);
-        localStorage.setItem('orders', JSON.stringify([...orders, ...orderData]));
-    
         // Prepare the data for the POST request
         const storename = profile?.storename;
         const requestData = {
@@ -225,6 +224,18 @@ const Suppliers = () => {
     
             const result = await response.json();
             console.log('Purchase addition response:', result);
+    
+            // Fetch new product purchases after successful purchase addition
+            const newPurchasesResponse = await fetch(`http://localhost:3000/${storename}/fetchNewProdPur`);
+            const newPurchasesData = await newPurchasesResponse.json();
+    
+            if (newPurchasesResponse.ok && newPurchasesData.success) {
+                // Update the state with the new product purchases
+                setOrders((prevOrders) => [...prevOrders, ...newPurchasesData.data]); // Assuming data contains the new purchases
+                localStorage.setItem('orders', JSON.stringify([...orders, ...newPurchasesData.data]));
+            } else {
+                console.error('Failed to fetch new product purchases:', newPurchasesData.message);
+            }
     
             // Fetch suppliers after successful purchase addition
             const supplierResponse = await fetch(`http://localhost:3000/${storename}/suppliers`, {

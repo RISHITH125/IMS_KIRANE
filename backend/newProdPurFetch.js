@@ -6,7 +6,7 @@ module.exports = {
 
             // Fetch new product purchase details
             const [rows] = await pool.query(
-                `SELECT productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName
+                `SELECT purchaseOrderid,productName, price, categoryName, reorderLevel, expiry, orderDate, quantity, supplierID, supplierName
                  FROM newProductPurchase`
             );
 

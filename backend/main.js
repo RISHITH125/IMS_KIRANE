@@ -661,10 +661,10 @@ app.post("/:storename/addPurchase", async (req, res) => {
     const { storename } = req.params;
     try {
         // Fetch new product purchases from the database
-        const [rows] = await fetchNewProdPurchase(genpool, storename);
+        const result = await fetchNewProdPurchase(genpool, storename);
         
         // Check if any rows were returned
-        if (rows.length === 0) {
+        if (result.data.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: "No new product purchases found."
@@ -672,11 +672,7 @@ app.post("/:storename/addPurchase", async (req, res) => {
         }
 
         // Return the fetched rows with a success message
-        return res.status(200).json({
-            success: true,
-            message: "New product purchases fetched successfully.",
-            data: rows // Include the fetched data
-        });
+        return res.status(200).json(result);
         
     } catch (err) {
         console.error(err); // Log the error for debugging
