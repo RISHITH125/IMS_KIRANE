@@ -1,7 +1,8 @@
 // src/components/Alerts.jsx
 import React, { useEffect, useState } from 'react';
-import {useUser} from '../context/user-context';
-import { constrainedMemory } from 'process';
+// import {useUser} from '../context/user-context';
+import {useUser} from '../context/UserContext';
+// import { constrainedMemory } from 'process';
 const Alerts = () => {
     const {profile} = useUser();
     const storename = profile.storename;
@@ -12,7 +13,7 @@ const Alerts = () => {
     useEffect(() => {
         const fetchAlerts = async () => {
             try {
-                const response = await fetch(`http://localhost:YOUR_PORT/${storename}/alerts`);
+                const response = await fetch(`http://localhost:YOUR_PORT/${storename}/checkExpiredProducts`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

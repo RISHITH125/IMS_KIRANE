@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Bell, User, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
-const Searchbar = ({ data, onFilter }) => {
-    const { profile, setProfile } = useUser();
+import { useUser  } from '../context/UserContext';
 
+const Searchbar = ({ data, onFilter }) => {
+    const { profile } = useUser ();
+    const [showAlerts, setShowAlerts] = useState(false);
+    const [alertData, setAlertData] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isFiltered, setIsFiltered] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const handleSearch = (e) => {
         const query = e.target.value;
@@ -31,22 +35,44 @@ const Searchbar = ({ data, onFilter }) => {
         onFilter(data); // Reset to original data
         setIsFiltered(false);
     };
-    useEffect(() => {
-        const fetchAlerts = async () => {
-            setLoading(true);
-            try {
-                const response = await fetch(`http://localhost:YOUR_PORT/${profile.storename}/alerts`);
-                if (!response.ok) throw new Error('Failed to fetch alerts');
-                const data = await response.json();
-                setAlerts(data.data || []);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
 
-        fetchAlerts();
+    const fetchAlertsAndCheckExpiredProducts = async () => {
+        setLoading(true);
+        try {
+
+            const expiredProductsResponse = await fetch(`http://localhost:3000/${profile.storename}/checkExpiredProducts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ storename: profile.storename }),
+            });
+            if (!expiredProductsResponse.ok) throw new Error('Failed to check expired products');
+            // const expiredProductsData = await expiredProductsResponse.json();
+            // console.log('Expired Products:', expiredProductsData); // Handle expired products data as needed
+
+            // Call the alerts API
+            const alertsResponse = await fetch(`http://localhost:3000/${profile.storename}/alerts`);
+            if (!alertsResponse.ok) throw new Error('Failed to fetch alerts');
+            const alertsData = await alertsResponse.json();
+            setAlertData(alertsData.data || []); // Update alert data
+
+            // Call the checkExpiredProducts API
+            
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (profile.storename) {
+            fetchAlertsAndCheckExpiredProducts(); // Fetch alerts and check expired products initially
+            const intervalId = setInterval(fetchAlertsAndCheckExpiredProducts, 120000); // Fetch every 2 minutes
+
+            return () => clearInterval(intervalId); // Clear interval on component unmount
+        }
     }, [profile.storename]);
 
     return (
@@ -75,60 +101,35 @@ const Searchbar = ({ data, onFilter }) => {
                     className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-200 hover:scale-105 transition-transform duration-300 relative"
                 >
                     <Bell className="text-gray-500" />
-                    {alerts.length > 0 && (
-                        <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                            {alerts.length}
+                    {alertData.length > 0 && (
+                        <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                            {alertData.length}
                         </span>
                     )}
                 </button>
-
-                {/* Alerts Dropdown */}
-                {showAlerts && (
-                    <div className="absolute right-20 top-12 w-80 bg-white shadow-md rounded-lg border overflow-hidden z-50">
-                        <div className="p-4">
-                            <h3 className="text-lg font-bold">Alerts</h3>
-                        </div>
-                        <div className="max-h-60 overflow-y-auto">
-                            {loading && <p className="p-4">Loading alerts...</p>}
-                            {error && <p className="p-4 text-red-500">Error: {error}</p>}
-                            {!loading && !error && alerts.length === 0 && (
-                                <p className="p-4">No alerts found.</p>
-                            )}
-                            {!loading && !error && alerts.map((alert) => (
-                                <div
-                                    key={alert.alertID}
-                                    className="p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors"
-                                >
-                                    <p className="text-sm">
-                                        <strong>Product:</strong> {alert.productName}
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                        <strong>Expiry:</strong> {alert.expiryDate}
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                        <strong>Alert:</strong> {alert.alertDate}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-4 text-center">
-                            <button
-                                className="text-sm text-blue-500 hover:underline"
-                                onClick={() => setShowAlerts(false)}
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Profile Icon */}
-                <Link to={`/${profile?.storename || 'default'}/profile`} className="flex items-center">
-                    <div className="w-10 h-10 rounded-full border-gray-500 border-2 bg-white flex items-center justify-center overflow-hidden">
-                        <User className="text-gray-500 w-6 h-6" />
-                    </div>
+                {/* User Icon */}
+                <Link to="/profile">
+                    <User  className="text-gray-500" />
                 </Link>
             </div>
+            {showAlerts && (
+                <div className="right-0 h-auto w-auto mt-auto bg-white shadow-lg rounded-lg p-4">
+                    <h3 className="font-bold text-lg">Alerts</h3>
+                    {loading ? (
+                        <p>Loading alerts...</p>
+                    ) : error ? (
+                        <p className="text-red-500">{error}</p>
+                    ) : (
+                        <ul className=' flex flex-col mt-auto'> 
+                            {alertData.map((alert,index) => (
+                                <li key={index} className="py-2 border-b">
+                                    {alert.productName} - Expiry Date: {alert.expiryDate}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

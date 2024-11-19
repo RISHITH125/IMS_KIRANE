@@ -97,7 +97,7 @@ const AddProductForm = ({ onClose, suppliers, onAddProduct }) => {
                                 required
                                 className="input input-sm input-bordered w-full p-2 border rounded bg-gray-100"
                             />
-                            <Calendar className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400" />
+                            {/* <Calendar className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400" /> */}
                         </div>
                     </div>
                     <div>

@@ -349,7 +349,7 @@ module.exports = {
     productName VARCHAR(255),
     expiryDate DATE,
     alertDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (productid) REFERENCES products(productid) -- Assuming you have a products table
+    FOREIGN KEY (productid) REFERENCES product(productid) -- Assuming you have a products table
 );`);
 
       await pool.query(`

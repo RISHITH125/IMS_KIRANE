@@ -15,7 +15,7 @@ const { addPurchase } = require("./addPurchaseOrder.js");
 const { newProdAdd } = require("./newProdPurchase.js");
 const { salesDisp } = require("./salesDisp.js");
 const { addSales } = require("./addSales.js");
-const { productSaleUpdate, afterPurchaseUpdate } = require("./triggers.js");
+const { productSaleUpdate, afterPurchaseUpdate ,expiryCheck} = require("./triggers.js");
 const { fetchNewProdPurchase } = require("./newProdPurFetch.js");
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Store your Google Client ID in .env
@@ -723,6 +723,7 @@ app.post("/:storename/addPurchase", async (req, res) => {
   app.post("/:storename/checkExpiredProducts", async (req, res) => {
     const { storename } = req.params;
     try {
+      await genpool.query(`USE \`${storename}\`;`);
         const result = await genpool.query("CALL CheckExpiredProducts(?);", [storename]);
         return res.status(200).json(result);
     } catch (error) {
@@ -734,6 +735,23 @@ app.post("/:storename/addPurchase", async (req, res) => {
         });
     }
 });
+
+  app.get("/:storename/alerts", async (req, res) => {
+    const { storename } = req.params;
+    try {
+        await genpool.query(`USE \`${storename}\`;`);
+        const [rows] = await genpool.query(
+            `SELECT * FROM alerts;`,
+            [storename]
+        );
+        console.log("Rows:", rows);
+        return res.json({success: true, data: rows});
+    } catch (error) {
+        console.error("Error fetching alerts:", error);
+        return res.status(500).json({success: false, data:[]});
+    }
+
+  })
 
   app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
