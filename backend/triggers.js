@@ -67,7 +67,7 @@ module.exports = {
                     -- Insert expired products into alerts table
                     INSERT INTO alerts (productID, productName, expiryDate)
                     SELECT p.productID, p.productName, p.expiry
-                    FROM products p
+                    FROM product p
                     WHERE p.expiry < currentDate
                       AND NOT EXISTS (
                           SELECT 1 FROM alerts a WHERE a.productID = p.productID
